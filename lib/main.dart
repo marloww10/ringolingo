@@ -33,6 +33,18 @@ class MyApp extends StatelessWidget {
           ),
           centerTitle: true,
         ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.grey, width: 2),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Color(0xFF4DA3FF), width: 2),
+          ),
+        ),
 
         colorScheme: .fromSeed(seedColor: const Color(0xFF4DA3FF)),
       ),
