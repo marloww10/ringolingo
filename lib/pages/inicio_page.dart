@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:ringolingo/pages/cadastro_page.dart';
+import 'package:ringolingo/pages/login_page.dart';
 
 class InicioPage extends StatefulWidget {
   const InicioPage({super.key});
@@ -93,7 +94,12 @@ class _InicioPageState extends State<InicioPage> {
                   child: Material(
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => LoginPage()),
+                        );
+                      },
                       child: Ink(
                         decoration: BoxDecoration(
                           color: Color(0xFF4DA3FF),
