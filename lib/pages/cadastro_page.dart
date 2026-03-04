@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ringolingo/pages/home_page.dart';
 
 class CadastroPage extends StatefulWidget {
   const CadastroPage({super.key});
@@ -51,7 +52,12 @@ class _CadastroPageState extends State<CadastroPage> {
                   child: Material(
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomePage()),
+                        );
+                      },
                       child: Ink(
                         decoration: BoxDecoration(
                           color: Color.fromARGB(15, 255, 255, 255),

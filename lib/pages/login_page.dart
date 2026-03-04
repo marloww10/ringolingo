@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ringolingo/pages/home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -28,7 +29,12 @@ class _LoginPageState extends State<LoginPage> {
                   child: Material(
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomePage()),
+                        );
+                      },
                       child: Ink(
                         decoration: BoxDecoration(
                           color: Color.fromARGB(15, 255, 255, 255),
