@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ringolingo/models/ringo_model.dart';
+import 'package:ringolingo/pages/perfil_page.dart';
+import 'package:ringolingo/providers/auth_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -10,6 +12,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final streak = 7;
+
   final List<RingoModel> meusRingos = [
     RingoModel(
       nome: "Ringo, Best Friend",
@@ -29,39 +33,129 @@ class _HomePageState extends State<HomePage> {
       nivelNecessario: 10,
       bloqueado: true,
     ),
+    RingoModel(
+      nome: "Ringo Aniversariante",
+      imagem: "lib/assets/ringoAniversariante.png",
+      nivelNecessario: 15,
+      bloqueado: false,
+    ),
   ];
+
   @override
   Widget build(BuildContext context) {
-    var nome = "Marlon";
+    var nome = AuthProvider().nomeUsuario ?? "Usuário";
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Olá, $nome!"),
-        automaticallyImplyLeading: false,
-        centerTitle: false,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 15),
-            child: CircleAvatar(
-              backgroundImage: AssetImage("lib/assets/ringoEntrevistador.png"),
-            ),
-          ),
-        ],
-      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsetsGeometry.symmetric(horizontal: 20, vertical: 30),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Olá,",
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Text(
+                        '$nome!',
+                        style: GoogleFonts.poppins(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Color(0xFFFFEEDD),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            Text("🔥", style: TextStyle(fontSize: 16)),
+                            SizedBox(width: 4),
+                            Text(
+                              "$streak",
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      InkWell(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => PerfilPage()),
+                        ),
+                        child: CircleAvatar(
+                          backgroundImage: AssetImage(
+                            "lib/assets/ringoEntrevistador.png",
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
               Container(
                 width: double.infinity,
-                height: 100,
+                padding: EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Color(0xFF4DA3FF),
+                  color: Color(0xFFEEF4FF),
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Seu progresso",
+                          style: TextStyle(color: Colors.grey, fontSize: 13),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          "Continue assim! 😊",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      "Nv.${AuthProvider().nivel ?? 1}",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 32,
+                        color: Color(0xFF4DA3FF),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 15),
+
               Text(
                 "Ringo em destaque",
                 style: GoogleFonts.poppins(
@@ -113,6 +207,8 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
               ),
+
+              // ── Missões ──
               Text(
                 "Missões disponíveis",
                 style: GoogleFonts.poppins(

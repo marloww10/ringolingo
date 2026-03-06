@@ -1,20 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:ringolingo/pages/home_page.dart';
 import 'package:ringolingo/pages/inicio_page.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ringolingo/providers/auth_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AuthProvider().carregarSessao();
+  await Supabase.initialize(
+    url: 'https://reorkwznacmxtfsvpmfv.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlb3Jrd3puYWNteHRmc3ZwbWZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxOTYwODIsImV4cCI6MjA4Nzc3MjA4Mn0.52IWl7vS7Tm0aoCzbjhdROzRPZBD9cGFAZDZiK8Ppkg',
+  );
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'RingoLingo',
       theme: ThemeData(
         textTheme: TextTheme(
           bodyLarge: GoogleFonts.nunito(),
@@ -48,7 +57,7 @@ class MyApp extends StatelessWidget {
 
         colorScheme: .fromSeed(seedColor: const Color(0xFF4DA3FF)),
       ),
-      home: const InicioPage(),
+      home: AuthProvider().estaLogado ? const HomePage() : const InicioPage(),
     );
   }
 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ringolingo/pages/home_page.dart';
+import 'package:ringolingo/pages/teladecarregamento_page.dart';
+import 'package:ringolingo/providers/auth_provider.dart';
+import 'package:ringolingo/services/api_service.dart';
 
 class CadastroPage extends StatefulWidget {
   const CadastroPage({super.key});
@@ -9,9 +12,66 @@ class CadastroPage extends StatefulWidget {
 }
 
 class _CadastroPageState extends State<CadastroPage> {
+  final _nomeController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _senhaController = TextEditingController();
+  bool carregando = false;
   bool _ocultarSenha = true;
+
+  @override
+  void dispose() {
+    _nomeController.dispose();
+    _emailController.dispose();
+    _senhaController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _cadastrar() async {
+    setState(() => carregando = true);
+
+    final respostaCadastro = await ApiService.cadastrarUsuario(
+      nome: _nomeController.text.trim(),
+      email: _emailController.text.trim(),
+      senha: _senhaController.text.trim(),
+    );
+
+    if (!respostaCadastro.sucesso) {
+      setState(() => carregando = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(respostaCadastro.mensagem),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    final respostaLogin = await ApiService.loginUsuario(
+      email: _emailController.text.trim(),
+      senha: _senhaController.text.trim(),
+    );
+
+    setState(() => carregando = false);
+
+    if (respostaLogin.sucesso) {
+      await AuthProvider().salvarSessao(
+        token: respostaLogin.dados['token'],
+        nome: respostaLogin.dados['nome'],
+        id: respostaLogin.dados['id'].toString(),
+        nivel: respostaLogin.dados['nivel'],
+        xpTotal: respostaLogin.dados['xPTotal'],
+        xpDoNivel: respostaLogin.dados['xpDoNivel'],
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (carregando) return const TeladecarregamentoPage();
     return Scaffold(
       appBar: AppBar(
         title: Text("Cadastro", style: TextStyle()),
@@ -23,13 +83,20 @@ class _CadastroPageState extends State<CadastroPage> {
             padding: EdgeInsetsGeometry.symmetric(vertical: 50, horizontal: 20),
             child: Column(
               children: [
-                TextField(decoration: InputDecoration(hintText: "Nome:")),
+                TextField(
+                  controller: _nomeController,
+                  decoration: InputDecoration(hintText: "Nome:"),
+                ),
                 SizedBox(height: 15),
                 TextField(decoration: InputDecoration(hintText: "Sobrenome:")),
                 SizedBox(height: 15),
-                TextField(decoration: InputDecoration(hintText: "Email:")),
+                TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(hintText: "Email:"),
+                ),
                 SizedBox(height: 15),
                 TextField(
+                  controller: _senhaController,
                   obscureText: _ocultarSenha,
                   decoration: InputDecoration(
                     hintText: "Senha:",
@@ -52,12 +119,11 @@ class _CadastroPageState extends State<CadastroPage> {
                   child: Material(
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => HomePage()),
-                        );
-                      },
+                      onTap: carregando
+                          ? null
+                          : () async {
+                              await _cadastrar();
+                            },
                       child: Ink(
                         decoration: BoxDecoration(
                           color: Color.fromARGB(15, 255, 255, 255),

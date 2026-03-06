@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:ringolingo/pages/cadastro_page.dart';
 import 'package:ringolingo/pages/login_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class InicioPage extends StatefulWidget {
   const InicioPage({super.key});
@@ -39,7 +40,13 @@ class _InicioPageState extends State<InicioPage> {
                   child: Material(
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
-                      onTap: () {},
+                      onTap: () async {
+                        await Supabase.instance.client.auth.signInWithOAuth(
+                          OAuthProvider.google,
+                          redirectTo: 'ringolingo://login-callback',
+                          authScreenLaunchMode: LaunchMode.inAppWebView,
+                        );
+                      },
                       child: Ink(
                         decoration: BoxDecoration(
                           color: Color.fromARGB(15, 255, 255, 255),

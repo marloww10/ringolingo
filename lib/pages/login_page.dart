@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:ringolingo/pages/esqueci_senha_page.dart';
 import 'package:ringolingo/pages/home_page.dart';
+import 'package:ringolingo/pages/teladecarregamento_page.dart';
+import 'package:ringolingo/providers/auth_provider.dart';
+import 'package:ringolingo/services/api_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -9,8 +13,52 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _emailController = TextEditingController();
+  final _senhaController = TextEditingController();
+  bool carregando = false;
+  bool _ocultarSenha = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _senhaController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fazerLogin() async {
+    setState(() => carregando = true);
+    final resposta = await ApiService.loginUsuario(
+      email: _emailController.text.trim(),
+      senha: _senhaController.text.trim(),
+    );
+    setState(() => carregando = false);
+
+    if (resposta.sucesso) {
+      await AuthProvider().salvarSessao(
+        token: resposta.dados['token'],
+        nome: resposta.dados['nome'],
+        id: resposta.dados['id'].toString(),
+        nivel: resposta.dados['nivel'],
+        xpTotal: resposta.dados['xpTotal'],
+        xpDoNivel: resposta.dados['xpDoNivel'],
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(resposta.mensagem),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (carregando) return const TeladecarregamentoPage();
     return Scaffold(
       appBar: AppBar(centerTitle: true, title: Text("Login")),
       body: SingleChildScrollView(
@@ -18,10 +66,45 @@ class _LoginPageState extends State<LoginPage> {
           child: Padding(
             padding: EdgeInsetsGeometry.symmetric(vertical: 50, horizontal: 20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                TextField(decoration: InputDecoration(hintText: "Email:")),
+                TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(hintText: "Email:"),
+                ),
                 SizedBox(height: 15),
-                TextField(decoration: InputDecoration(hintText: "Senha:")),
+                TextField(
+                  controller: _senhaController,
+                  obscureText: _ocultarSenha,
+                  decoration: InputDecoration(
+                    hintText: "Senha:",
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _ocultarSenha = !_ocultarSenha;
+                        });
+                      },
+                      icon: Icon(
+                        _ocultarSenha ? Icons.visibility : Icons.visibility_off,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EsquecisenhaPage(),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    "Esqueci minha senha",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
                 SizedBox(height: 15),
                 SizedBox(
                   width: double.infinity,
@@ -29,12 +112,11 @@ class _LoginPageState extends State<LoginPage> {
                   child: Material(
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => HomePage()),
-                        );
-                      },
+                      onTap: carregando
+                          ? null
+                          : () async {
+                              await _fazerLogin();
+                            },
                       child: Ink(
                         decoration: BoxDecoration(
                           color: Color.fromARGB(15, 255, 255, 255),
