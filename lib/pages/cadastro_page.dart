@@ -15,8 +15,10 @@ class _CadastroPageState extends State<CadastroPage> {
   final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
   final _senhaController = TextEditingController();
+  final _confirmarSenhaController = TextEditingController();
   bool carregando = false;
   bool _ocultarSenha = true;
+  bool _ocultarConfirmarSenha = true;
 
   @override
   void dispose() {
@@ -85,21 +87,21 @@ class _CadastroPageState extends State<CadastroPage> {
               children: [
                 TextField(
                   controller: _nomeController,
-                  decoration: InputDecoration(hintText: "Nome:"),
+                  decoration: InputDecoration(hintText: "Nome"),
                 ),
                 SizedBox(height: 15),
-                TextField(decoration: InputDecoration(hintText: "Sobrenome:")),
+                TextField(decoration: InputDecoration(hintText: "Sobrenome")),
                 SizedBox(height: 15),
                 TextField(
                   controller: _emailController,
-                  decoration: InputDecoration(hintText: "Email:"),
+                  decoration: InputDecoration(hintText: "Email"),
                 ),
                 SizedBox(height: 15),
                 TextField(
                   controller: _senhaController,
                   obscureText: _ocultarSenha,
                   decoration: InputDecoration(
-                    hintText: "Senha:",
+                    hintText: "Senha",
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() {
@@ -108,6 +110,26 @@ class _CadastroPageState extends State<CadastroPage> {
                       },
                       icon: Icon(
                         _ocultarSenha ? Icons.visibility : Icons.visibility_off,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 15),
+                TextField(
+                  controller: _confirmarSenhaController,
+                  obscureText: _ocultarConfirmarSenha,
+                  decoration: InputDecoration(
+                    hintText: "Confirmar senha",
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _ocultarConfirmarSenha = !_ocultarConfirmarSenha;
+                        });
+                      },
+                      icon: Icon(
+                        _ocultarConfirmarSenha
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                       ),
                     ),
                   ),
@@ -122,6 +144,16 @@ class _CadastroPageState extends State<CadastroPage> {
                       onTap: carregando
                           ? null
                           : () async {
+                              if (_confirmarSenhaController.text !=
+                                  _senhaController.text) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("As senhas não são iguais."),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                                return;
+                              }
                               await _cadastrar();
                             },
                       child: Ink(

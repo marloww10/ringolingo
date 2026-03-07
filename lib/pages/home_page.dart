@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ringolingo/models/ringo_model.dart';
+import 'package:ringolingo/pages/chat_page.dart';
 import 'package:ringolingo/pages/perfil_page.dart';
 import 'package:ringolingo/providers/auth_provider.dart';
 
@@ -20,24 +21,28 @@ class _HomePageState extends State<HomePage> {
       imagem: "lib/assets/ringoBestFriend.png",
       nivelNecessario: 1,
       bloqueado: false,
+      persona: "MelhorAmigo",
     ),
     RingoModel(
       nome: "Ringo, Garçom",
       imagem: "lib/assets/ringoGarçom.png",
       nivelNecessario: 5,
       bloqueado: false,
+      persona: "Garcom",
     ),
     RingoModel(
       nome: "Ringo, Entrevistador",
       imagem: "lib/assets/ringoEntrevistador.png",
       nivelNecessario: 10,
-      bloqueado: true,
+      bloqueado: false,
+      persona: "Entrevistador",
     ),
     RingoModel(
       nome: "Ringo Aniversariante",
       imagem: "lib/assets/ringoAniversariante.png",
       nivelNecessario: 15,
       bloqueado: false,
+      persona: "Aniversariante",
     ),
   ];
 
@@ -173,35 +178,53 @@ class _HomePageState extends State<HomePage> {
                   itemCount: meusRingos.length,
                   itemBuilder: (context, index) {
                     final ringo = meusRingos[index];
-                    return Container(
-                      margin: EdgeInsets.only(right: 10),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(12)),
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Color(0xFF4DA3FF),
-                            width: 6,
+                    return GestureDetector(
+                      onTap: ringo.bloqueado
+                          ? null
+                          : () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ChatPage(ringo: ringo),
+                                ),
+                              );
+                            },
+                      child: Container(
+                        margin: EdgeInsets.only(right: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Color(0xFF4DA3FF),
+                              width: 6,
+                            ),
+                            left: BorderSide(
+                              color: Color(0xFF4DA3FF),
+                              width: 2,
+                            ),
+                            right: BorderSide(
+                              color: Color(0xFF4DA3FF),
+                              width: 2,
+                            ),
+                            top: BorderSide(color: Color(0xFF4DA3FF), width: 2),
                           ),
-                          left: BorderSide(color: Color(0xFF4DA3FF), width: 2),
-                          right: BorderSide(color: Color(0xFF4DA3FF), width: 2),
-                          top: BorderSide(color: Color(0xFF4DA3FF), width: 2),
                         ),
-                      ),
-                      padding: EdgeInsets.only(top: 20),
-                      width: 150,
-                      child: Column(
-                        children: [
-                          Opacity(
-                            opacity: ringo.bloqueado ? 0.4 : 1.0,
-                            child: Image.asset(ringo.imagem, height: 100),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            ringo.nome,
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text("Nivel: ${ringo.nivelNecessario}"),
-                        ],
+                        padding: EdgeInsets.only(top: 20),
+                        width: 150,
+                        child: Column(
+                          children: [
+                            Opacity(
+                              opacity: ringo.bloqueado ? 0.4 : 1.0,
+                              child: Image.asset(ringo.imagem, height: 100),
+                            ),
+                            SizedBox(height: 5),
+                            Text(
+                              ringo.nome,
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Text("Nivel: ${ringo.nivelNecessario}"),
+                          ],
+                        ),
                       ),
                     );
                   },
