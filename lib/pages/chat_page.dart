@@ -16,6 +16,7 @@ class _ChatPageState extends State<ChatPage> {
   final _scrollController = ScrollController();
   final List<Map<String, dynamic>> _mensagens = [];
   bool _digitando = false;
+  bool _mostrarXp = false;
 
   @override
   void dispose() {
@@ -34,6 +35,12 @@ class _ChatPageState extends State<ChatPage> {
         );
       }
     });
+  }
+
+  void _mostrarAnimacaoXp() async {
+    setState(() => _mostrarXp = true);
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (mounted) setState(() => _mostrarXp = false);
   }
 
   Map<String, String> _parsearResposta(String texto) {
@@ -113,6 +120,7 @@ class _ChatPageState extends State<ChatPage> {
           "mostrarTraducao": false,
           "mostrarDica": false,
         });
+        _mostrarAnimacaoXp();
       } else {
         _mensagens.add({
           "remetente": "ringo",
@@ -149,27 +157,81 @@ class _ChatPageState extends State<ChatPage> {
           ],
         ),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              itemCount: _mensagens.length + (_digitando ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (_digitando && index == _mensagens.length) {
-                  return _bolhaDigitando();
-                }
-                final msg = _mensagens[index];
-                final isUsuario = msg['remetente'] == 'usuario';
-                if (isUsuario) {
-                  return _bolhaMensagem(msg['texto'], true);
-                }
-                return _bolhaRingo(index, msg);
-              },
-            ),
+          Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  itemCount: _mensagens.length + (_digitando ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (_digitando && index == _mensagens.length) {
+                      return _bolhaDigitando();
+                    }
+                    final msg = _mensagens[index];
+                    final isUsuario = msg['remetente'] == 'usuario';
+                    if (isUsuario) {
+                      return _bolhaMensagem(msg['texto'], true);
+                    }
+                    return _bolhaRingo(index, msg);
+                  },
+                ),
+              ),
+              _campoMensagem(),
+            ],
           ),
-          _campoMensagem(),
+
+          // Animação +10 XP
+          if (_mostrarXp)
+            Positioned(
+              bottom: 80,
+              left: 0,
+              right: 0,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: 1),
+                duration: const Duration(milliseconds: 1500),
+                builder: (context, value, child) {
+                  return Opacity(
+                    opacity: value < 0.7 ? value / 0.7 : (1 - value) / 0.3,
+                    child: Transform.translate(
+                      offset: Offset(0, -40 * value),
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4DA3FF),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.blue.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Text(
+                            "⭐ +10 XP",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
         ],
       ),
     );
@@ -209,13 +271,10 @@ class _ChatPageState extends State<ChatPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Texto em inglês
             Text(
               partes['english'] ?? '',
               style: const TextStyle(color: Colors.black87, fontSize: 15),
             ),
-
-            // Tradução expandível
             if (temTraducao) ...[
               const SizedBox(height: 8),
               GestureDetector(
@@ -260,8 +319,6 @@ class _ChatPageState extends State<ChatPage> {
                 ),
               ],
             ],
-
-            // Dica expandível
             if (temDica) ...[
               const SizedBox(height: 8),
               GestureDetector(

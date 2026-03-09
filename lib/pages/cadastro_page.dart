@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ringolingo/pages/home_page.dart';
+import 'package:ringolingo/pages/language_selection_page.dart';
 import 'package:ringolingo/pages/teladecarregamento_page.dart';
 import 'package:ringolingo/providers/auth_provider.dart';
 import 'package:ringolingo/services/api_service.dart';
@@ -66,7 +66,7 @@ class _CadastroPageState extends State<CadastroPage> {
       );
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
+        MaterialPageRoute(builder: (_) => const LanguageSelectionPage()),
       );
     }
   }

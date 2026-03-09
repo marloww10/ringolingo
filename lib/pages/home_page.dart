@@ -231,7 +231,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
 
-              // ── Missões ──
               Text(
                 "Missões disponíveis",
                 style: GoogleFonts.poppins(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ringolingo/pages/inicio_page.dart';
+import 'package:ringolingo/pages/language_selection_page.dart';
 import 'package:ringolingo/providers/auth_provider.dart';
 
 class PerfilPage extends StatefulWidget {
@@ -40,7 +41,6 @@ class _PerfilPageState extends State<PerfilPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // ── Container azul (sem alterações) ──
             Container(
               width: double.infinity,
               height: 310,
@@ -113,7 +113,6 @@ class _PerfilPageState extends State<PerfilPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Card XP Total
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(20),
@@ -136,8 +135,6 @@ class _PerfilPageState extends State<PerfilPage> {
                     ),
                   ),
                   SizedBox(height: 10),
-
-                  // Card Conquistas (placeholder)
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(20),
@@ -159,9 +156,40 @@ class _PerfilPageState extends State<PerfilPage> {
                       ],
                     ),
                   ),
+
+                  SizedBox(height: 10),
+                  InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const LanguageSelectionPage(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Color(0xFF4DA3FF), width: 2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.language, color: Color(0xFF4DA3FF)),
+                          SizedBox(width: 10),
+                          Text(
+                            "Idiomas",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   SizedBox(height: 30),
 
-                  // Botão logout
                   SizedBox(
                     width: double.infinity,
                     height: 60,
