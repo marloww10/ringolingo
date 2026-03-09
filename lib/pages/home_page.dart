@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ringolingo/models/missao_model.dart';
 import 'package:ringolingo/models/ringo_model.dart';
 import 'package:ringolingo/pages/chat_page.dart';
 import 'package:ringolingo/pages/perfil_page.dart';
@@ -14,6 +15,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final streak = 7;
+
+  final List<MissaoModel> missoes = MissaoModel.missoesDiarias()
+    ..[0].avancar(3) // simulando progresso para o design
+    ..[2].avancar(1); // missão de streak concluída
 
   final List<RingoModel> meusRingos = [
     RingoModel(
@@ -64,16 +69,9 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Olá,",
+                        'Olá, $nome!',
                         style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      Text(
-                        '$nome!',
-                        style: GoogleFonts.poppins(
-                          fontSize: 32,
+                          fontSize: 28,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -160,7 +158,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               SizedBox(height: 15),
-
               Text(
                 "Ringo em destaque",
                 style: GoogleFonts.poppins(
@@ -230,7 +227,6 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
               ),
-
               Text(
                 "Missões disponíveis",
                 style: GoogleFonts.poppins(
@@ -238,9 +234,127 @@ class _HomePageState extends State<HomePage> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              SizedBox(height: 10),
+              ...missoes.map((missao) => _cartaoMissao(missao)),
+              SizedBox(height: 20),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _cartaoMissao(MissaoModel missao) {
+    final borderColor = missao.concluida
+        ? Colors.green
+        : const Color(0xFF4DA3FF);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: missao.concluida ? const Color(0xFFE8F5E9) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border(
+          bottom: BorderSide(color: borderColor, width: 6),
+          left: BorderSide(color: borderColor, width: 2),
+          right: BorderSide(color: borderColor, width: 2),
+          top: BorderSide(color: borderColor, width: 2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(missao.icone, style: const TextStyle(fontSize: 24)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      missao.titulo,
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text(
+                      missao.descricao,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              missao.concluida
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        "✓ Feito",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4DA3FF).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        "+${missao.xpRecompensa} XP",
+                        style: const TextStyle(
+                          color: Color(0xFF4DA3FF),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: missao.progresso,
+              minHeight: 8,
+              backgroundColor: Color.fromARGB(255, 238, 238, 238),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                missao.concluida ? Colors.green : const Color(0xFF4DA3FF),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            missao.concluida
+                ? "Missão concluída!"
+                : "${missao.progressoAtual}/${missao.meta}",
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              color: missao.concluida ? Colors.green : Colors.grey,
+              fontWeight: missao.concluida
+                  ? FontWeight.bold
+                  : FontWeight.normal,
+            ),
+          ),
+        ],
       ),
     );
   }

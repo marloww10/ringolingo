@@ -55,6 +55,8 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
+        scaffoldBackgroundColor: Colors.white,
+
         colorScheme: .fromSeed(seedColor: const Color(0xFF4DA3FF)),
       ),
       home: AuthProvider().estaLogado ? const HomePage() : const InicioPage(),
