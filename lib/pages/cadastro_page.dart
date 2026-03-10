@@ -56,13 +56,16 @@ class _CadastroPageState extends State<CadastroPage> {
     setState(() => carregando = false);
 
     if (respostaLogin.sucesso) {
-      await AuthProvider().salvarSessao(
+      AuthProvider().salvarSessao(
         token: respostaLogin.dados['token'],
         nome: respostaLogin.dados['nome'],
-        id: respostaLogin.dados['id'].toString(),
-        nivel: respostaLogin.dados['nivel'],
-        xpTotal: respostaLogin.dados['xPTotal'],
-        xpDoNivel: respostaLogin.dados['xpDoNivel'],
+        id: respostaLogin.dados['id'],
+        nivel: respostaLogin.dados['nivel'] ?? 1,
+        xpTotal:
+            respostaLogin.dados['xpTotal'] ??
+            respostaLogin.dados['xPTotal'] ??
+            0,
+        xpDoNivel: respostaLogin.dados['xpDoNivel'] ?? 0,
       );
       Navigator.pushReplacement(
         context,

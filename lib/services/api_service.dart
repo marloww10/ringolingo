@@ -72,7 +72,7 @@ class ApiService {
               'Content-Type': 'application/json',
               'Authorization': 'Bearer $token',
             },
-            body: jsonEncode({'conteudo': conteudo, 'persona': persona}),
+            body: jsonEncode({'conteudo': conteudo, 'nomePersona': persona}),
           )
           .timeout(const Duration(seconds: 15));
 
@@ -86,6 +86,43 @@ class ApiService {
       return ApiResponse(sucesso: false, mensagem: 'Erro de conexão: $e');
     }
   }
+
+  static Future<int> buscarStreak(int usuarioId) async {
+    try {
+      final response = await http
+          .get(Uri.parse('$baseUrl/Usuario/Streak?usuarioId=$usuarioId'))
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        return body['streak'] ?? 0;
+      }
+      return 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  static Future<XpInfo?> buscarXp(int usuarioId) async {
+    try {
+      final response = await http
+          .get(Uri.parse('$baseUrl/Usuario/XP?usuarioId=$usuarioId'))
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        return XpInfo(
+          nivel: body['nivel'] ?? 1,
+          xpTotal: body['xpTotal'] ?? 0,
+          xpDoNivel: body['xpDoNivel'] ?? 0,
+          xpNecessarioProximoNivel: body['xpNecessarioProximoNivel'] ?? 500,
+        );
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
 }
 
 class ApiResponse {
@@ -94,4 +131,18 @@ class ApiResponse {
   final dynamic dados;
 
   ApiResponse({required this.sucesso, required this.mensagem, this.dados});
+}
+
+class XpInfo {
+  final int nivel;
+  final int xpTotal;
+  final int xpDoNivel;
+  final int xpNecessarioProximoNivel;
+
+  XpInfo({
+    required this.nivel,
+    required this.xpTotal,
+    required this.xpDoNivel,
+    required this.xpNecessarioProximoNivel,
+  });
 }

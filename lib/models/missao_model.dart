@@ -27,10 +27,9 @@ class MissaoModel {
     this.concluida = false,
   });
 
-  // Porcentagem de progresso (0.0 a 1.0)
   double get progresso => (progressoAtual / meta).clamp(0.0, 1.0);
 
-  // Avança o progresso e marca como concluída se atingir a meta
+ 
   void avancar([int quantidade = 1]) {
     if (concluida) return;
     progressoAtual = (progressoAtual + quantidade).clamp(0, meta);
@@ -39,13 +38,11 @@ class MissaoModel {
     }
   }
 
-  // Reseta para o próximo dia
   void resetar() {
     progressoAtual = 0;
     concluida = false;
   }
 
-  // Missões padrão do dia
   static List<MissaoModel> missoesDiarias() {
     return [
       MissaoModel(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ringolingo/pages/inicio_page.dart';
 import 'package:ringolingo/pages/language_selection_page.dart';
 import 'package:ringolingo/providers/auth_provider.dart';
+import 'package:ringolingo/services/api_service.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -11,27 +12,36 @@ class PerfilPage extends StatefulWidget {
 }
 
 class _PerfilPageState extends State<PerfilPage> {
-  final xpDoNivel = AuthProvider().xpDoNivel ?? 0;
-  final xpTotal = AuthProvider().xpTotal ?? 0;
-  final nivel = AuthProvider().nivel ?? 1;
+  @override
+  void initState() {
+    super.initState();
+    _atualizarXp();
+  }
 
-  final Map<int, int> xpPorNivel = {
-    1: 500,
-    2: 750,
-    3: 1000,
-    4: 1500,
-    5: 2000,
-    6: 3000,
-    7: 4500,
-    8: 7000,
-    9: 10500,
-    10: 15500,
-  };
-
-  int get xpNecessario => xpPorNivel[AuthProvider().nivel ?? 1] ?? 500;
+  Future<void> _atualizarXp() async {
+    final auth = AuthProvider();
+    if (auth.id == null) return;
+    final xpInfo = await ApiService.buscarXp(auth.id!);
+    if (xpInfo != null && mounted) {
+      auth.atualizarXp(
+        xpInfo.nivel,
+        xpInfo.xpTotal,
+        xpInfo.xpDoNivel,
+        xpInfo.xpNecessarioProximoNivel,
+      );
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final auth = AuthProvider();
+
+    final nivel = auth.nivel ?? 1;
+    final xpDoNivel = auth.xpDoNivel ?? 0;
+    final xpTotal = auth.xpTotal ?? 0;
+    final xpNecessario = auth.xpNecessarioProximoNivel ?? 500;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF4DA3FF),
@@ -66,7 +76,7 @@ class _PerfilPageState extends State<PerfilPage> {
                     ),
                     SizedBox(height: 20),
                     Text(
-                      AuthProvider().nomeUsuario.toString(),
+                      auth.nomeUsuario.toString(),
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -88,7 +98,9 @@ class _PerfilPageState extends State<PerfilPage> {
                           SizedBox(width: 10),
                           Expanded(
                             child: LinearProgressIndicator(
-                              value: xpDoNivel / xpNecessario,
+                              value: xpNecessario > 0
+                                  ? (xpDoNivel / xpNecessario).clamp(0.0, 1.0)
+                                  : 0.0,
                               backgroundColor: Colors.white38,
                               color: Colors.white,
                               minHeight: 10,
@@ -197,7 +209,7 @@ class _PerfilPageState extends State<PerfilPage> {
                       child: InkWell(
                         borderRadius: BorderRadius.circular(12),
                         onTap: () async {
-                          await AuthProvider().encerrarSessao();
+                          AuthProvider().encerrarSessao();
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
