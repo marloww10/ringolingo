@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:ringolingo/pages/inicio_page.dart';
 import 'package:ringolingo/pages/language_selection_page.dart';
+import 'package:ringolingo/pages/quem_somos_page.dart';
 import 'package:ringolingo/providers/auth_provider.dart';
 import 'package:ringolingo/services/api_service.dart';
 
@@ -44,17 +46,18 @@ class _PerfilPageState extends State<PerfilPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF4DA3FF),
+        backgroundColor: const Color(0xFF4DA3FF),
         foregroundColor: Colors.white,
-        title: Text("Perfil", style: TextStyle(color: Colors.white)),
+        title: const Text("Perfil", style: TextStyle(color: Colors.white)),
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // ── HEADER ──
             Container(
               width: double.infinity,
               height: 310,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Color(0xFF4DA3FF),
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(50),
@@ -68,34 +71,34 @@ class _PerfilPageState extends State<PerfilPage> {
                 ),
                 child: Column(
                   children: [
-                    CircleAvatar(
+                    const CircleAvatar(
                       radius: 60,
                       backgroundImage: AssetImage(
                         "lib/assets/ringoEntrevistador.png",
                       ),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Text(
                       auth.nomeUsuario.toString(),
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 30,
                       ),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 50),
+                      padding: const EdgeInsets.symmetric(horizontal: 50),
                       child: Row(
                         children: [
                           Text(
                             "Nv.$nivel",
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: LinearProgressIndicator(
                               value: xpNecessario > 0
@@ -107,10 +110,13 @@ class _PerfilPageState extends State<PerfilPage> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           Text(
                             "$xpDoNivel/$xpNecessario",
-                            style: TextStyle(color: Colors.white, fontSize: 12),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                       ),
@@ -120,88 +126,71 @@ class _PerfilPageState extends State<PerfilPage> {
               ),
             ),
 
+            // ── BOTÕES ──
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Color(0xFF4DA3FF), width: 2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.star, color: Color(0xFF4DA3FF)),
-                        SizedBox(width: 10),
-                        Text(
-                          "XP Total: $xpTotal",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+                  // XP Total
+                  _itemCard(
+                    icon: Icons.star_rounded,
+                    label: "XP Total",
+                    valor: "$xpTotal XP",
+                    iconColor: const Color(0xFF4DA3FF),
+                    bgColor: const Color(0xFFEEF4FF),
                   ),
-                  SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Color(0xFF4DA3FF), width: 2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.emoji_events, color: Color(0xFF4DA3FF)),
-                        SizedBox(width: 10),
-                        Text(
-                          "Conquistas",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  const SizedBox(height: 10),
 
-                  SizedBox(height: 10),
-                  InkWell(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const LanguageSelectionPage(),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Color(0xFF4DA3FF), width: 2),
-                        borderRadius: BorderRadius.circular(12),
+                  // Conquistas
+                  _itemCard(
+                    icon: Icons.emoji_events_rounded,
+                    label: "Conquistas",
+                    iconColor: const Color(0xFFFFAA00),
+                    bgColor: const Color(0xFFFFF8E7),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Idiomas
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const LanguageSelectionPage(),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.language, color: Color(0xFF4DA3FF)),
-                          SizedBox(width: 10),
-                          Text(
-                            "Idiomas",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                    ),
+                    child: _itemCard(
+                      icon: Icons.language_rounded,
+                      label: "Idiomas",
+                      iconColor: const Color(0xFF34C759),
+                      bgColor: const Color(0xFFEAF7EE),
+                      trailing: Icon(
+                        Icons.chevron_right_rounded,
+                        color: Colors.grey.shade400,
                       ),
                     ),
                   ),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 10),
 
+                  // Quem somos
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const QuemSomosPage()),
+                    ),
+                    child: _itemCard(
+                      icon: Icons.info_outline_rounded,
+                      label: "Quem somos",
+                      iconColor: const Color(0xFF7B61FF),
+                      bgColor: const Color(0xFFF3EEFF),
+                      trailing: Icon(
+                        Icons.chevron_right_rounded,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // Botão Sair — mantido exatamente como estava
                   SizedBox(
                     width: double.infinity,
                     height: 60,
@@ -220,9 +209,9 @@ class _PerfilPageState extends State<PerfilPage> {
                         },
                         child: Ink(
                           decoration: BoxDecoration(
-                            color: Color.fromARGB(15, 255, 255, 255),
+                            color: const Color.fromARGB(15, 255, 255, 255),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border(
+                            border: const Border(
                               bottom: BorderSide(
                                 width: 6,
                                 color: Colors.redAccent,
@@ -246,7 +235,7 @@ class _PerfilPageState extends State<PerfilPage> {
                             children: [
                               Text(
                                 "Sair",
-                                style: TextStyle(
+                                style: GoogleFonts.poppins(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -262,6 +251,70 @@ class _PerfilPageState extends State<PerfilPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _itemCard({
+    required IconData icon,
+    required String label,
+    String? valor,
+    required Color iconColor,
+    required Color bgColor,
+    Widget? trailing,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE8F0FE), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: iconColor, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF1A1A2E),
+                  ),
+                ),
+                if (valor != null)
+                  Text(
+                    valor,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (trailing != null) trailing,
+        ],
       ),
     );
   }

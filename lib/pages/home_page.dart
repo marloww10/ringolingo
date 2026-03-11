@@ -95,7 +95,10 @@ class _HomePageState extends State<HomePage> {
         _streak = streak;
         _nivel = xpInfo?.nivel ?? auth.nivel ?? 1;
         _xpDoNivel = xpInfo?.xpDoNivel ?? auth.xpDoNivel ?? 0;
-        _xpNecessario = xpInfo?.xpNecessarioProximoNivel ?? auth.xpNecessarioProximoNivel ?? 500;
+        _xpNecessario =
+            xpInfo?.xpNecessarioProximoNivel ??
+            auth.xpNecessarioProximoNivel ??
+            500;
         _carregando = false;
       });
     }
@@ -167,8 +170,7 @@ class _HomePageState extends State<HomePage> {
                       InkWell(
                         onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(
-                              builder: (_) => const PerfilPage()),
+                          MaterialPageRoute(builder: (_) => const PerfilPage()),
                         ),
                         child: const CircleAvatar(
                           backgroundImage: AssetImage(
@@ -201,8 +203,10 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             const Text(
                               "Seu progresso",
-                              style:
-                                  TextStyle(color: Colors.grey, fontSize: 13),
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 13,
+                              ),
                             ),
                             const SizedBox(height: 6),
                             const Text(
@@ -268,13 +272,15 @@ class _HomePageState extends State<HomePage> {
                         _nivel >= ringo.nivelNecessario && !ringo.bloqueado;
                     return GestureDetector(
                       onTap: desbloqueado
-                          ? () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ChatPage(ringo: ringo),
-                                ),
-                              ).then((_) =>
-                                  _carregarDados()) // atualiza XP ao voltar
+                          ? () =>
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ChatPage(ringo: ringo),
+                                  ),
+                                ).then(
+                                  (_) => _carregarDados(),
+                                ) // atualiza XP ao voltar
                           : () => _mostrarDialogBloqueado(ringo),
                       child: Container(
                         margin: const EdgeInsets.only(right: 10),
@@ -318,8 +324,9 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(height: 5),
                             Text(
                               ringo.nome,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                             Text(
@@ -363,8 +370,7 @@ class _HomePageState extends State<HomePage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text("🔒 Ringo bloqueado"),
         content: Text(
           "Alcance o nível ${ringo.nivelNecessario} para desbloquear o ${ringo.nome}.",
@@ -380,8 +386,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _cartaoMissao(MissaoModel missao) {
-    final borderColor =
-        missao.concluida ? Colors.green : const Color(0xFF4DA3FF);
+    final borderColor = missao.concluida
+        ? Colors.green
+        : const Color(0xFF4DA3FF);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -427,7 +434,9 @@ class _HomePageState extends State<HomePage> {
               missao.concluida
                   ? Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.green,
                         borderRadius: BorderRadius.circular(20),
@@ -443,7 +452,9 @@ class _HomePageState extends State<HomePage> {
                     )
                   : Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF4DA3FF).withOpacity(0.15),
                         borderRadius: BorderRadius.circular(20),
@@ -479,8 +490,9 @@ class _HomePageState extends State<HomePage> {
             style: GoogleFonts.poppins(
               fontSize: 11,
               color: missao.concluida ? Colors.green : Colors.grey,
-              fontWeight:
-                  missao.concluida ? FontWeight.bold : FontWeight.normal,
+              fontWeight: missao.concluida
+                  ? FontWeight.bold
+                  : FontWeight.normal,
             ),
           ),
         ],
