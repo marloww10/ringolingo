@@ -96,8 +96,6 @@ class _CadastroPageState extends State<CadastroPage> {
                   decoration: InputDecoration(hintText: "Nome"),
                 ),
                 SizedBox(height: 15),
-                TextField(decoration: InputDecoration(hintText: "Sobrenome")),
-                SizedBox(height: 15),
                 TextField(
                   controller: _emailController,
                   decoration: InputDecoration(hintText: "Email"),

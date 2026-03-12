@@ -19,7 +19,7 @@ class _EsquecisenhaPageState extends State<EsquecisenhaPage> {
             padding: EdgeInsetsGeometry.symmetric(vertical: 50, horizontal: 20),
             child: Column(
               children: [
-                TextField(decoration: InputDecoration(hintText: "Email:")),
+                TextField(decoration: InputDecoration(hintText: "Email")),
                 SizedBox(height: 15),
                 SizedBox(
                   width: double.infinity,

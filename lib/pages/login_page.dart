@@ -79,14 +79,14 @@ class _LoginPageState extends State<LoginPage> {
                 TextField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(hintText: "Email:"),
+                  decoration: const InputDecoration(hintText: "Email"),
                 ),
                 const SizedBox(height: 15),
                 TextField(
                   controller: _senhaController,
                   obscureText: _ocultarSenha,
                   decoration: InputDecoration(
-                    hintText: "Senha:",
+                    hintText: "Senha",
                     suffixIcon: IconButton(
                       onPressed: () {
                         setState(() => _ocultarSenha = !_ocultarSenha);
