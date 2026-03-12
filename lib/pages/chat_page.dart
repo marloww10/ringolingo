@@ -64,30 +64,31 @@ class _ChatPageState extends State<ChatPage> {
       if (l.startsWith('English:')) {
         secaoAtual = 'english';
         final resto = l.replaceFirst('English:', '').trim();
-        if (resto.isNotEmpty) english += resto + '\n';
+        if (resto.isNotEmpty) english += '$resto\n';
       } else if (l.startsWith('Portuguese:')) {
         secaoAtual = 'portuguese';
         final resto = l.replaceFirst('Portuguese:', '').trim();
-        if (resto.isNotEmpty) portuguese += resto + '\n';
+        if (resto.isNotEmpty) portuguese += '$resto\n';
       } else if (l.startsWith("Teacher's Tip (English):")) {
         secaoAtual = 'tipEnglish';
         final resto = l.replaceFirst("Teacher's Tip (English):", '').trim();
-        if (resto.isNotEmpty) tipEnglish += resto + '\n';
+        if (resto.isNotEmpty) tipEnglish += '$resto\n';
       } else if (l.startsWith('Dica do Professor (Português):')) {
         secaoAtual = 'tipPortuguese';
         final resto = l
             .replaceFirst('Dica do Professor (Português):', '')
             .trim();
-        if (resto.isNotEmpty) tipPortuguese += resto + '\n';
+        if (resto.isNotEmpty) tipPortuguese += '$resto\n';
       } else if (l.isNotEmpty) {
-        if (secaoAtual == 'english')
-          english += l + '\n';
-        else if (secaoAtual == 'portuguese')
-          portuguese += l + '\n';
-        else if (secaoAtual == 'tipEnglish')
-          tipEnglish += l + '\n';
-        else if (secaoAtual == 'tipPortuguese')
-          tipPortuguese += l + '\n';
+        if (secaoAtual == 'english') {
+          english += '$l\n';
+        } else if (secaoAtual == 'portuguese') {
+          portuguese += '$l\n';
+        } else if (secaoAtual == 'tipEnglish') {
+          tipEnglish += '$l\n';
+        } else if (secaoAtual == 'tipPortuguese') {
+          tipPortuguese += '$l\n';
+        }
       }
     }
 

@@ -87,8 +87,9 @@ class AuthProvider {
     if (_nivel != null) prefs.setInt('nivel', _nivel!);
     if (_xpTotal != null) prefs.setInt('xpTotal', _xpTotal!);
     if (_xpDoNivel != null) prefs.setInt('xpDoNivel', _xpDoNivel!);
-    if (_xpNecessarioProximoNivel != null)
+    if (_xpNecessarioProximoNivel != null) {
       prefs.setInt('xpNecessario', _xpNecessarioProximoNivel!);
+    }
     if (_streak != null) prefs.setInt('streak', _streak!);
     if (_fotoUrl != null) prefs.setString('fotoUrl', _fotoUrl!);
   }

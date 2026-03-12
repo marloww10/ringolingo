@@ -381,7 +381,7 @@ class _PerfilPageState extends State<PerfilPage> {
               ],
             ),
           ),
-          if (trailing != null) trailing,
+          ?trailing,
         ],
       ),
     );
