@@ -18,7 +18,6 @@ class QuemSomosPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── HERO ──
             Container(
               width: double.infinity,
               decoration: const BoxDecoration(
@@ -127,7 +126,6 @@ class QuemSomosPage extends StatelessWidget {
 
             _divider(),
 
-            // ── VERSÃO ──
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Container(

@@ -25,41 +25,19 @@ class _HomePageState extends State<HomePage> {
     ..[0].avancar(3)
     ..[2].avancar(1);
 
-  final List<RingoModel> meusRingos = [
-    RingoModel(
-      nome: "Ringo, Best Friend",
-      imagem: "lib/assets/ringoBestFriend.png",
-      nivelNecessario: 1,
-      bloqueado: false,
-      persona: "MelhorAmigo",
-    ),
-    RingoModel(
-      nome: "Ringo, Garçom",
-      imagem: "lib/assets/ringoGarçom.png",
-      nivelNecessario: 5,
-      bloqueado: false,
-      persona: "Garcom",
-    ),
-    RingoModel(
-      nome: "Ringo, Entrevistador",
-      imagem: "lib/assets/ringoEntrevistador.png",
-      nivelNecessario: 10,
-      bloqueado: false,
-      persona: "Entrevistador",
-    ),
-    RingoModel(
-      nome: "Ringo Aniversariante",
-      imagem: "lib/assets/ringoAniversariante.png",
-      nivelNecessario: 15,
-      bloqueado: false,
-      persona: "Aniversariante",
-    ),
-  ];
+  List<RingoModel> meusRingos = [];
+  Future<void> buscarpersona() async {
+    final personas = await ApiService.buscarPersonas();
+    if (personas != null && mounted) {
+      setState(() => meusRingos = personas);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     _carregarDados();
+    buscarpersona();
   }
 
   Future<void> _carregarDados() async {
@@ -71,7 +49,6 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    // Busca streak e XP em paralelo
     final resultados = await Future.wait([
       ApiService.buscarStreak(id),
       ApiService.buscarXp(id),
@@ -268,8 +245,7 @@ class _HomePageState extends State<HomePage> {
                   itemCount: meusRingos.length,
                   itemBuilder: (context, index) {
                     final ringo = meusRingos[index];
-                    final desbloqueado =
-                        _nivel >= ringo.nivelNecessario && !ringo.bloqueado;
+                    final desbloqueado = _nivel >= ringo.nivelNecessario;
                     return GestureDetector(
                       onTap: desbloqueado
                           ? () =>
@@ -319,7 +295,10 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             Opacity(
                               opacity: desbloqueado ? 1.0 : 0.4,
-                              child: Image.asset(ringo.imagem, height: 100),
+                              child: Image.network(
+                                ringo.imagemUrl,
+                                height: 100,
+                              ),
                             ),
                             const SizedBox(height: 5),
                             Text(

@@ -1,8 +1,42 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:ringolingo/models/conquista_model.dart';
+import 'package:ringolingo/models/ringo_model.dart';
 
 class ApiService {
   static const String baseUrl = 'http://10.0.2.2:5269';
+
+  static Future<List<RingoModel>?> buscarPersonas() async {
+    try {
+      final response = await http
+          .get(Uri.parse('$baseUrl/Personas'))
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((e) => RingoModel.fromJson(e)).toList();
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static Future<List<ConquistaModel>?> buscarConquistas(int usuarioId) async {
+    try {
+      final response = await http
+          .get(Uri.parse('$baseUrl/Conquista?usuarioId=$usuarioId'))
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((e) => ConquistaModel.fromJson(e)).toList();
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
 
   static Future<ApiResponse> cadastrarUsuario({
     required String nome,

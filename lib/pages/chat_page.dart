@@ -106,7 +106,7 @@ class _ChatPageState extends State<ChatPage> {
     final resposta = await ApiService.enviarMensagem(
       token: AuthProvider().token ?? "",
       conteudo: texto,
-      persona: widget.ringo.persona,
+      persona: widget.ringo.nome,
     );
 
     setState(() {
@@ -146,7 +146,7 @@ class _ChatPageState extends State<ChatPage> {
         title: Row(
           children: [
             CircleAvatar(
-              backgroundImage: AssetImage(widget.ringo.imagem),
+              backgroundImage: AssetImage(widget.ringo.imagemUrl),
               radius: 20,
             ),
             const SizedBox(width: 10),

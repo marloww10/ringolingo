@@ -24,7 +24,6 @@ class AuthProvider {
   int? get streak => _streak;
   bool get estaLogado => _token != null;
 
-  // Salva sessão após login
   void salvarSessao({
     required String token,
     required String nome,
@@ -42,7 +41,6 @@ class AuthProvider {
     _persistir();
   }
 
-  // Atualiza XP e nível após cada mensagem enviada no chat
   void atualizarXp(int nivel, int xpTotal, int xpDoNivel, int xpNecessarioProximoNivel) {
     _nivel = nivel;
     _xpTotal = xpTotal;
@@ -51,7 +49,6 @@ class AuthProvider {
     _persistir();
   }
 
-  // Atualiza streak vindo do endpoint /Usuario/Streak
   void atualizarStreak(int streak) {
     _streak = streak;
     _persistir();
@@ -68,10 +65,6 @@ class AuthProvider {
     _streak = null;
     _limparPersistencia();
   }
-
-  // ─────────────────────────────────────────
-  // PERSISTÊNCIA COM SHARED PREFERENCES
-  // ─────────────────────────────────────────
 
   Future<void> _persistir() async {
     final prefs = await SharedPreferences.getInstance();
@@ -97,7 +90,6 @@ class AuthProvider {
       _xpNecessarioProximoNivel = prefs.getInt('xpNecessario');
       _streak = prefs.getInt('streak');
 
-      // id pode ter sido salvo como String em versões antigas do app — lê com segurança
       final idRaw = prefs.get('id');
       if (idRaw is int) {
         _id = idRaw;
@@ -107,7 +99,6 @@ class AuthProvider {
         _id = null;
       }
     } catch (e) {
-      // Se qualquer leitura falhar, limpa tudo e força novo login
       await _limparPersistencia();
     }
   }

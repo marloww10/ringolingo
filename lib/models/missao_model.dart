@@ -10,7 +10,7 @@ class MissaoModel {
   final String descricao;
   final String icone;
   final TipoMissao tipo;
-  final int meta; // quantas vezes precisa fazer
+  final int meta;
   final int xpRecompensa;
   int progressoAtual;
   bool concluida;

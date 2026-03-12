@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ringolingo/pages/conquista_page.dart';
 import 'package:ringolingo/pages/inicio_page.dart';
 import 'package:ringolingo/pages/language_selection_page.dart';
 import 'package:ringolingo/pages/quem_somos_page.dart';
@@ -143,11 +144,20 @@ class _PerfilPageState extends State<PerfilPage> {
                   const SizedBox(height: 10),
 
                   // Conquistas
-                  _itemCard(
-                    icon: Icons.emoji_events_rounded,
-                    label: "Conquistas",
-                    iconColor: const Color(0xFFFFAA00),
-                    bgColor: const Color(0xFFFFF8E7),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => ConquistasPage()),
+                    ),
+                    child: _itemCard(
+                      icon: Icons.emoji_events_rounded,
+                      label: "Conquistas",
+                      iconColor: const Color(0xFFFFAA00),
+                      bgColor: const Color(0xFFFFF8E7),
+                      trailing: Icon(
+                        Icons.chevron_right_rounded,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 10),
 
@@ -171,7 +181,6 @@ class _PerfilPageState extends State<PerfilPage> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Quem somos
                   GestureDetector(
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const QuemSomosPage()),
@@ -190,7 +199,6 @@ class _PerfilPageState extends State<PerfilPage> {
 
                   const SizedBox(height: 30),
 
-                  // Botão Sair — mantido exatamente como estava
                   SizedBox(
                     width: double.infinity,
                     height: 60,
