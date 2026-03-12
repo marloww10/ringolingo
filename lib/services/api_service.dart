@@ -38,6 +38,21 @@ class ApiService {
     }
   }
 
+  static Future<bool> atualizarFoto(int usuarioId, String fotoUrl) async {
+    try {
+      final response = await http
+          .put(
+            Uri.parse('$baseUrl/Usuario/Foto?usuarioId=$usuarioId'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'fotoUrl': fotoUrl}),
+          )
+          .timeout(const Duration(seconds: 10));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
   static Future<ApiResponse> cadastrarUsuario({
     required String nome,
     required String email,

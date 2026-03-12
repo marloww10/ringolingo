@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ringolingo/models/missao_model.dart';
@@ -97,7 +99,6 @@ class _HomePageState extends State<HomePage> {
             children: [
               const SizedBox(height: 20),
 
-              // ── HEADER ──
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -149,10 +150,17 @@ class _HomePageState extends State<HomePage> {
                           context,
                           MaterialPageRoute(builder: (_) => const PerfilPage()),
                         ),
-                        child: const CircleAvatar(
-                          backgroundImage: AssetImage(
-                            "lib/assets/ringoEntrevistador.png",
-                          ),
+                        child: CircleAvatar(
+                          backgroundImage:
+                              AuthProvider().fotoUrl != null &&
+                                  AuthProvider().fotoUrl!.isNotEmpty
+                              ? (AuthProvider().fotoUrl!.startsWith('http')
+                                    ? NetworkImage(AuthProvider().fotoUrl!)
+                                          as ImageProvider
+                                    : FileImage(File(AuthProvider().fotoUrl!)))
+                              : const AssetImage(
+                                  "lib/assets/ringoEntrevistador.png",
+                                ),
                         ),
                       ),
                     ],
@@ -161,7 +169,6 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 20),
 
-              // ── CARD DE PROGRESSO COM BARRA DE XP ──
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -327,7 +334,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
 
-              // ── MISSÕES ──
               Text(
                 "Missões disponíveis",
                 style: GoogleFonts.poppins(

@@ -1,4 +1,6 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:ringolingo/firebase_options.dart';
 import 'package:ringolingo/pages/home_page.dart';
 import 'package:ringolingo/pages/inicio_page.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,6 +15,7 @@ void main() async {
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlb3Jrd3puYWNteHRmc3ZwbWZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxOTYwODIsImV4cCI6MjA4Nzc3MjA4Mn0.52IWl7vS7Tm0aoCzbjhdROzRPZBD9cGFAZDZiK8Ppkg',
   );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -55,7 +58,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        scaffoldBackgroundColor: Colors.white,
+        scaffoldBackgroundColor: const Color(0xFFF7FAFF),
 
         colorScheme: .fromSeed(seedColor: const Color(0xFF4DA3FF)),
       ),

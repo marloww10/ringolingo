@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "578727182197",
+    "project_id": "ringolingo-437bb",
+    "storage_bucket": "ringolingo-437bb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:578727182197:android:d7c06b2b3f96090b309d3c",
+        "android_client_info": {
+          "package_name": "com.example.ringolingo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiIugBBexJpZJqwdgKJzy407oUYaZroTs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

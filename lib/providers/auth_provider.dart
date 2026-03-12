@@ -13,6 +13,7 @@ class AuthProvider {
   int? _xpDoNivel;
   int? _xpNecessarioProximoNivel;
   int? _streak;
+  String? _fotoUrl;
 
   String? get token => _token;
   String? get nomeUsuario => _nomeUsuario;
@@ -22,6 +23,7 @@ class AuthProvider {
   int? get xpDoNivel => _xpDoNivel;
   int? get xpNecessarioProximoNivel => _xpNecessarioProximoNivel;
   int? get streak => _streak;
+  String? get fotoUrl => _fotoUrl;
   bool get estaLogado => _token != null;
 
   void salvarSessao({
@@ -41,7 +43,12 @@ class AuthProvider {
     _persistir();
   }
 
-  void atualizarXp(int nivel, int xpTotal, int xpDoNivel, int xpNecessarioProximoNivel) {
+  void atualizarXp(
+    int nivel,
+    int xpTotal,
+    int xpDoNivel,
+    int xpNecessarioProximoNivel,
+  ) {
     _nivel = nivel;
     _xpTotal = xpTotal;
     _xpDoNivel = xpDoNivel;
@@ -51,6 +58,11 @@ class AuthProvider {
 
   void atualizarStreak(int streak) {
     _streak = streak;
+    _persistir();
+  }
+
+  void atualizarFoto(String url) {
+    _fotoUrl = url;
     _persistir();
   }
 
@@ -64,6 +76,7 @@ class AuthProvider {
     _xpNecessarioProximoNivel = null;
     _streak = null;
     _limparPersistencia();
+    _fotoUrl = null;
   }
 
   Future<void> _persistir() async {
@@ -74,8 +87,10 @@ class AuthProvider {
     if (_nivel != null) prefs.setInt('nivel', _nivel!);
     if (_xpTotal != null) prefs.setInt('xpTotal', _xpTotal!);
     if (_xpDoNivel != null) prefs.setInt('xpDoNivel', _xpDoNivel!);
-    if (_xpNecessarioProximoNivel != null) prefs.setInt('xpNecessario', _xpNecessarioProximoNivel!);
+    if (_xpNecessarioProximoNivel != null)
+      prefs.setInt('xpNecessario', _xpNecessarioProximoNivel!);
     if (_streak != null) prefs.setInt('streak', _streak!);
+    if (_fotoUrl != null) prefs.setString('fotoUrl', _fotoUrl!);
   }
 
   Future<void> carregarSessao() async {
@@ -89,6 +104,7 @@ class AuthProvider {
       _xpDoNivel = prefs.getInt('xpDoNivel');
       _xpNecessarioProximoNivel = prefs.getInt('xpNecessario');
       _streak = prefs.getInt('streak');
+      _fotoUrl = prefs.getString('fotoUrl');
 
       final idRaw = prefs.get('id');
       if (idRaw is int) {

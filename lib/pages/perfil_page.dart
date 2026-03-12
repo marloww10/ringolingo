@@ -36,6 +36,40 @@ class _PerfilPageState extends State<PerfilPage> {
     }
   }
 
+  void _editarFoto(BuildContext context) {
+    final controller = TextEditingController();
+    final auth = AuthProvider();
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Alterar foto de perfil'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: 'Cole a URL da imagem'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final url = controller.text.trim();
+              if (url.isEmpty || auth.id == null) return;
+              final sucesso = await ApiService.atualizarFoto(auth.id!, url);
+              if (sucesso) {
+                auth.atualizarFoto(url);
+                if (mounted) setState(() {});
+              }
+              if (context.mounted) Navigator.pop(context);
+            },
+            child: const Text('Salvar'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = AuthProvider();
@@ -72,10 +106,16 @@ class _PerfilPageState extends State<PerfilPage> {
                 ),
                 child: Column(
                   children: [
-                    const CircleAvatar(
-                      radius: 60,
-                      backgroundImage: AssetImage(
-                        "lib/assets/ringoEntrevistador.png",
+                    GestureDetector(
+                      onTap: () => _editarFoto(context),
+                      child: CircleAvatar(
+                        radius: 60,
+                        backgroundImage:
+                            auth.fotoUrl != null && auth.fotoUrl!.isNotEmpty
+                            ? NetworkImage(auth.fotoUrl!) as ImageProvider
+                            : const AssetImage(
+                                "lib/assets/ringoEntrevistador.png",
+                              ),
                       ),
                     ),
                     const SizedBox(height: 20),
