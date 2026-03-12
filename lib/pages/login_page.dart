@@ -3,6 +3,7 @@ import 'package:ringolingo/pages/esqueci_senha_page.dart';
 import 'package:ringolingo/pages/home_page.dart';
 import 'package:ringolingo/pages/teladecarregamento_page.dart';
 import 'package:ringolingo/providers/auth_provider.dart';
+import 'package:ringolingo/services/analytics_service.dart';
 import 'package:ringolingo/services/api_service.dart';
 
 class LoginPage extends StatefulWidget {
@@ -34,6 +35,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => carregando = false);
 
     if (resposta.sucesso) {
+      await AnalyticsService.loginSucesso(); // ← NOVO
       final dados = resposta.dados;
       AuthProvider().salvarSessao(
         token: dados['token'],
@@ -50,6 +52,7 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     } else {
+      await AnalyticsService.erroLogin(resposta.mensagem); // ← NOVO
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -122,9 +125,18 @@ class _LoginPageState extends State<LoginPage> {
                           color: const Color.fromARGB(15, 255, 255, 255),
                           borderRadius: BorderRadius.circular(12),
                           border: const Border(
-                            bottom: BorderSide(width: 6, color: Color(0xFF4DA3FF)),
-                            left: BorderSide(width: 2, color: Color(0xFF4DA3FF)),
-                            right: BorderSide(width: 2, color: Color(0xFF4DA3FF)),
+                            bottom: BorderSide(
+                              width: 6,
+                              color: Color(0xFF4DA3FF),
+                            ),
+                            left: BorderSide(
+                              width: 2,
+                              color: Color(0xFF4DA3FF),
+                            ),
+                            right: BorderSide(
+                              width: 2,
+                              color: Color(0xFF4DA3FF),
+                            ),
                             top: BorderSide(width: 2, color: Color(0xFF4DA3FF)),
                           ),
                         ),

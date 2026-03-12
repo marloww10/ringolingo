@@ -3,8 +3,9 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 class AnalyticsService {
   static final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
-  static final FirebaseAnalyticsObserver observer =
-      FirebaseAnalyticsObserver(analytics: analytics);
+  static final FirebaseAnalyticsObserver observer = FirebaseAnalyticsObserver(
+    analytics: analytics,
+  );
 
   // ── TELAS ──
   static Future logScreen(String screenName) async {
@@ -78,5 +79,51 @@ class AnalyticsService {
       name: "chat_dica_aberta",
       parameters: {"ringo": nomeRingo},
     );
+  }
+
+  // ── ENGAJAMENTO ──
+  static Future loginSucesso() async {
+    await analytics.logEvent(name: "login_sucesso");
+  }
+
+  static Future cadastroSucesso() async {
+    await analytics.logEvent(name: "cadastro_sucesso");
+  }
+
+  static Future nivelSubiu(int nivel) async {
+    await analytics.logEvent(name: "nivel_subiu", parameters: {"nivel": nivel});
+  }
+
+  static Future streakAtingido(int dias) async {
+    await analytics.logEvent(
+      name: "streak_atingido",
+      parameters: {"dias": dias},
+    );
+  }
+
+  // ── ERROS ──
+  static Future erroLogin(String motivo) async {
+    await analytics.logEvent(
+      name: "erro_login",
+      parameters: {"motivo": motivo},
+    );
+  }
+
+  static Future erroCadastro(String motivo) async {
+    await analytics.logEvent(
+      name: "erro_cadastro",
+      parameters: {"motivo": motivo},
+    );
+  }
+
+  static Future erroChat(String nomeRingo) async {
+    await analytics.logEvent(
+      name: "erro_chat",
+      parameters: {"ringo": nomeRingo},
+    );
+  }
+
+  static Future erroCarregarPersonas() async {
+    await analytics.logEvent(name: "erro_carregar_personas");
   }
 }

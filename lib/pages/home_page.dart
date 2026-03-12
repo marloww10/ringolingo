@@ -34,6 +34,8 @@ class _HomePageState extends State<HomePage> {
     final personas = await ApiService.buscarPersonas();
     if (personas != null && mounted) {
       setState(() => meusRingos = personas);
+    } else if (personas == null) {
+      AnalyticsService.erroCarregarPersonas(); // ← NOVO
     }
   }
 
@@ -47,6 +49,8 @@ class _HomePageState extends State<HomePage> {
   Future<void> _carregarDados() async {
     final auth = AuthProvider();
     final id = auth.id;
+    final nivelAnterior = auth.nivel ?? 1;
+    final streakAnterior = auth.streak ?? 0;
 
     if (id == null) {
       setState(() => _carregando = false);
@@ -62,6 +66,17 @@ class _HomePageState extends State<HomePage> {
     final xpInfo = resultados[1] as XpInfo?;
 
     if (xpInfo != null) {
+      // ← NOVO: evento de nível subiu
+      if (xpInfo.nivel > nivelAnterior) {
+        AnalyticsService.nivelSubiu(xpInfo.nivel);
+      }
+
+      // ← NOVO: evento de streak marcante (3, 7, 14, 30 dias)
+      const streaksMarcantes = [3, 7, 14, 30];
+      if (streaksMarcantes.contains(streak) && streak != streakAnterior) {
+        AnalyticsService.streakAtingido(streak);
+      }
+
       auth.atualizarXp(
         xpInfo.nivel,
         xpInfo.xpTotal,

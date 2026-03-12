@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ringolingo/pages/language_selection_page.dart';
 import 'package:ringolingo/pages/teladecarregamento_page.dart';
 import 'package:ringolingo/providers/auth_provider.dart';
+import 'package:ringolingo/services/analytics_service.dart';
 import 'package:ringolingo/services/api_service.dart';
 
 class CadastroPage extends StatefulWidget {
@@ -38,6 +39,7 @@ class _CadastroPageState extends State<CadastroPage> {
     );
 
     if (!respostaCadastro.sucesso) {
+      await AnalyticsService.erroCadastro(respostaCadastro.mensagem); // ← NOVO
       setState(() => carregando = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -56,6 +58,7 @@ class _CadastroPageState extends State<CadastroPage> {
     setState(() => carregando = false);
 
     if (respostaLogin.sucesso) {
+      await AnalyticsService.cadastroSucesso(); // ← NOVO
       AuthProvider().salvarSessao(
         token: respostaLogin.dados['token'],
         nome: respostaLogin.dados['nome'],
@@ -149,6 +152,9 @@ class _CadastroPageState extends State<CadastroPage> {
                           : () async {
                               if (_confirmarSenhaController.text !=
                                   _senhaController.text) {
+                                await AnalyticsService.erroCadastro(
+                                  "senhas_diferentes",
+                                ); // ← NOVO
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text("As senhas não são iguais."),
