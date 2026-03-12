@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ringolingo/models/ringo_model.dart';
 import 'package:ringolingo/providers/auth_provider.dart';
+import 'package:ringolingo/services/analytics_service.dart';
 import 'package:ringolingo/services/api_service.dart';
 
 class ChatPage extends StatefulWidget {
@@ -17,6 +18,12 @@ class _ChatPageState extends State<ChatPage> {
   final List<Map<String, dynamic>> _mensagens = [];
   bool _digitando = false;
   bool _mostrarXp = false;
+
+  @override
+  void initState() {
+    super.initState();
+    AnalyticsService.chatAberto(widget.ringo.nome);
+  }
 
   @override
   void dispose() {
@@ -38,8 +45,8 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _mostrarAnimacaoXp() async {
-    setState(() => _mostrarXp = true);
-    await Future.delayed(const Duration(milliseconds: 1000));
+    if (mounted) setState(() => _mostrarXp = true);
+    await Future.delayed(const Duration(milliseconds: 2000));
     if (mounted) setState(() => _mostrarXp = false);
   }
 
@@ -96,6 +103,8 @@ class _ChatPageState extends State<ChatPage> {
     final texto = _mensagemController.text.trim();
     if (texto.isEmpty || _digitando) return;
 
+    AnalyticsService.chatMensagemEnviada(widget.ringo.nome);
+
     setState(() {
       _mensagens.add({"remetente": "usuario", "texto": texto});
       _mensagemController.clear();
@@ -120,7 +129,6 @@ class _ChatPageState extends State<ChatPage> {
           "mostrarTraducao": false,
           "mostrarDica": false,
         });
-        _mostrarAnimacaoXp();
       } else {
         _mensagens.add({
           "remetente": "ringo",
@@ -135,6 +143,7 @@ class _ChatPageState extends State<ChatPage> {
         });
       }
     });
+    _mostrarAnimacaoXp();
     _scrollParaBaixo();
   }
 
@@ -146,7 +155,9 @@ class _ChatPageState extends State<ChatPage> {
         title: Row(
           children: [
             CircleAvatar(
-              backgroundImage: AssetImage(widget.ringo.imagemUrl),
+              backgroundImage: NetworkImage(
+                'http://10.0.2.2:5269${widget.ringo.imagemUrl}',
+              ),
               radius: 20,
             ),
             const SizedBox(width: 10),
@@ -279,6 +290,9 @@ class _ChatPageState extends State<ChatPage> {
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: () {
+                  if (!mostrarTraducao) {
+                    AnalyticsService.chatTraducaoAberta(widget.ringo.nome);
+                  }
                   setState(() {
                     _mensagens[index]['mostrarTraducao'] = !mostrarTraducao;
                   });
@@ -323,6 +337,9 @@ class _ChatPageState extends State<ChatPage> {
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: () {
+                  if (!mostrarDica) {
+                    AnalyticsService.chatDicaAberta(widget.ringo.nome);
+                  }
                   setState(() {
                     _mensagens[index]['mostrarDica'] = !mostrarDica;
                   });
@@ -457,7 +474,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget _campoMensagem() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
         boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
       ),

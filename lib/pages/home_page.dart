@@ -7,6 +7,7 @@ import 'package:ringolingo/models/ringo_model.dart';
 import 'package:ringolingo/pages/chat_page.dart';
 import 'package:ringolingo/pages/perfil_page.dart';
 import 'package:ringolingo/providers/auth_provider.dart';
+import 'package:ringolingo/services/analytics_service.dart';
 import 'package:ringolingo/services/api_service.dart';
 
 class HomePage extends StatefulWidget {
@@ -28,6 +29,7 @@ class _HomePageState extends State<HomePage> {
     ..[2].avancar(1);
 
   List<RingoModel> meusRingos = [];
+
   Future<void> buscarpersona() async {
     final personas = await ApiService.buscarPersonas();
     if (personas != null && mounted) {
@@ -99,6 +101,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               const SizedBox(height: 20),
 
+              // ── HEADER ──
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -146,10 +149,15 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(width: 10),
                       InkWell(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const PerfilPage()),
-                        ),
+                        onTap: () {
+                          AnalyticsService.homePerfilAberto();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PerfilPage(),
+                            ),
+                          ).then((_) => setState(() {}));
+                        },
                         child: CircleAvatar(
                           backgroundImage:
                               AuthProvider().fotoUrl != null &&
@@ -169,6 +177,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 20),
 
+              // ── CARD DE PROGRESSO ──
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -255,16 +264,21 @@ class _HomePageState extends State<HomePage> {
                     final desbloqueado = _nivel >= ringo.nivelNecessario;
                     return GestureDetector(
                       onTap: desbloqueado
-                          ? () =>
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => ChatPage(ringo: ringo),
-                                  ),
-                                ).then(
-                                  (_) => _carregarDados(),
-                                ) // atualiza XP ao voltar
-                          : () => _mostrarDialogBloqueado(ringo),
+                          ? () {
+                              AnalyticsService.homeRingoAberto(ringo.nome);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ChatPage(ringo: ringo),
+                                ),
+                              ).then((_) => _carregarDados());
+                            }
+                          : () {
+                              AnalyticsService.homeRingoBloqueadoClick(
+                                ringo.nome,
+                              );
+                              _mostrarDialogBloqueado(ringo);
+                            },
                       child: Container(
                         margin: const EdgeInsets.only(right: 10),
                         decoration: BoxDecoration(
@@ -303,8 +317,14 @@ class _HomePageState extends State<HomePage> {
                             Opacity(
                               opacity: desbloqueado ? 1.0 : 0.4,
                               child: Image.network(
-                                ringo.imagemUrl,
+                                'http://10.0.2.2:5269${ringo.imagemUrl}',
                                 height: 100,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(
+                                      Icons.person,
+                                      size: 60,
+                                      color: Colors.grey,
+                                    ),
                               ),
                             ),
                             const SizedBox(height: 5),
@@ -334,6 +354,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
 
+              // ── MISSÕES ──
               Text(
                 "Missões disponíveis",
                 style: GoogleFonts.poppins(

@@ -6,6 +6,7 @@ import 'package:ringolingo/pages/language_selection_page.dart';
 import 'package:ringolingo/pages/quem_somos_page.dart';
 import 'package:ringolingo/providers/auth_provider.dart';
 import 'package:ringolingo/services/api_service.dart';
+import 'package:ringolingo/services/analytics_service.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -107,7 +108,10 @@ class _PerfilPageState extends State<PerfilPage> {
                 child: Column(
                   children: [
                     GestureDetector(
-                      onTap: () => _editarFoto(context),
+                      onTap: () {
+                        AnalyticsService.perfilEditarFoto();
+                        _editarFoto(context);
+                      },
                       child: CircleAvatar(
                         radius: 60,
                         backgroundImage:
@@ -185,9 +189,14 @@ class _PerfilPageState extends State<PerfilPage> {
 
                   // Conquistas
                   GestureDetector(
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => ConquistasPage()),
-                    ),
+                    onTap: () async {
+                      await AnalyticsService.perfilConquistas();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => ConquistasPage(),
+                        ),
+                      );
+                    },
                     child: _itemCard(
                       icon: Icons.emoji_events_rounded,
                       label: "Conquistas",
@@ -203,11 +212,14 @@ class _PerfilPageState extends State<PerfilPage> {
 
                   // Idiomas
                   GestureDetector(
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const LanguageSelectionPage(),
-                      ),
-                    ),
+                    onTap: () async {
+                      await AnalyticsService.perfilIdiomas();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const LanguageSelectionPage(),
+                        ),
+                      );
+                    },
                     child: _itemCard(
                       icon: Icons.language_rounded,
                       label: "Idiomas",
@@ -221,10 +233,16 @@ class _PerfilPageState extends State<PerfilPage> {
                   ),
                   const SizedBox(height: 10),
 
+                  // Quem somos
                   GestureDetector(
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const QuemSomosPage()),
-                    ),
+                    onTap: () async {
+                      await AnalyticsService.perfilQuemSomos();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const QuemSomosPage(),
+                        ),
+                      );
+                    },
                     child: _itemCard(
                       icon: Icons.info_outline_rounded,
                       label: "Quem somos",
@@ -239,6 +257,7 @@ class _PerfilPageState extends State<PerfilPage> {
 
                   const SizedBox(height: 30),
 
+                  // Botão Sair
                   SizedBox(
                     width: double.infinity,
                     height: 60,
@@ -246,6 +265,7 @@ class _PerfilPageState extends State<PerfilPage> {
                       child: InkWell(
                         borderRadius: BorderRadius.circular(12),
                         onTap: () async {
+                          AnalyticsService.perfilLogout();
                           AuthProvider().encerrarSessao();
                           Navigator.pushAndRemoveUntil(
                             context,

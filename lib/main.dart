@@ -6,6 +6,7 @@ import 'package:ringolingo/pages/inicio_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ringolingo/providers/auth_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'services/analytics_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorObservers: [AnalyticsService.observer],
       debugShowCheckedModeBanner: false,
       title: 'RingoLingo',
       theme: ThemeData(
