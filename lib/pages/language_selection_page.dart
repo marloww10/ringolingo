@@ -19,22 +19,6 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
       "bandeira": "lib/assets/bandeiraBrasil.png",
       "codigo": "pt",
     },
-    {
-      "nome": "English",
-      "bandeira": "lib/assets/bandeiraEua.png",
-      "codigo": "en",
-    },
-    {
-      "nome": "Español",
-      "bandeira": "lib/assets/bandeiraEspanha.png",
-      "codigo": "es",
-    },
-
-    {
-      "nome": "Frances",
-      "bandeira": "lib/assets/bandeiraFranca.png",
-      "codigo": "fr",
-    },
   ];
 
   Future<void> _salvarEContinuar() async {
