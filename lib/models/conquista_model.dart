@@ -3,6 +3,7 @@ class ConquistaModel {
   final String nome;
   final int xpGanho;
   final bool desbloqueada;
+  final String descricao;
   final DateTime? dataConquista;
 
   ConquistaModel({
@@ -10,6 +11,7 @@ class ConquistaModel {
     required this.nome,
     required this.xpGanho,
     required this.desbloqueada,
+    required this.descricao,
     this.dataConquista,
   });
 
@@ -19,6 +21,7 @@ class ConquistaModel {
       nome: json['nome'],
       xpGanho: json['xpGanho'] ?? 0,
       desbloqueada: json['desbloqueada'] ?? false,
+      descricao: json['descricao'] ?? '',
       dataConquista: json['dataConquista'] != null
           ? DateTime.parse(json['dataConquista'])
           : null,

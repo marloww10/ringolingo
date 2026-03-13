@@ -87,10 +87,6 @@ flutter:
   assets:
     - lib/assets/google-icon.svg
     - lib/assets/facebook.svg
-    - lib/assets/ringoBestFriend.png
-    - lib/assets/ringoGarçom.png
-    - lib/assets/ringoEntrevistador.png
-    - lib/assets/ringoAniversariante.png
     - lib/assets/novoRingo.json
     - lib/assets/icon.png
     - lib/assets/bandeiraEua.png

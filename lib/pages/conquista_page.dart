@@ -111,17 +111,7 @@ class _ConquistasPageState extends State<ConquistasPage> {
                       ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text('🏆', style: TextStyle(fontSize: 48)),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Nenhuma conquista disponível ainda',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 15,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
+                            children: [],
                           ),
                         )
                       : ListView.builder(
@@ -206,9 +196,9 @@ class _ConquistasPageState extends State<ConquistasPage> {
                       color: Colors.grey.shade500,
                     ),
                   )
-                else if (!desbloqueada)
+                else
                   Text(
-                    'Ainda não desbloqueada',
+                    conquista.descricao,
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       color: Colors.grey.shade400,
