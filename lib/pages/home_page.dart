@@ -24,10 +24,7 @@ class _HomePageState extends State<HomePage> {
   int _xpNecessario = 500;
   bool _carregando = true;
 
-  final List<MissaoModel> missoes = MissaoModel.missoesDiarias()
-    ..[0].avancar(3)
-    ..[2].avancar(1);
-
+  List<MissaoModel> _missoes = [];
   List<RingoModel> meusRingos = [];
 
   Future<void> buscarpersona() async {
@@ -35,7 +32,16 @@ class _HomePageState extends State<HomePage> {
     if (personas != null && mounted) {
       setState(() => meusRingos = personas);
     } else if (personas == null) {
-      AnalyticsService.erroCarregarPersonas(); // ← NOVO
+      AnalyticsService.erroCarregarPersonas();
+    }
+  }
+
+  Future<void> _buscarMissoes() async {
+    final id = AuthProvider().id;
+    if (id == null) return;
+    final missoes = await ApiService.buscarMissoes(id);
+    if (missoes != null && mounted) {
+      setState(() => _missoes = missoes);
     }
   }
 
@@ -44,6 +50,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _carregarDados();
     buscarpersona();
+    _buscarMissoes();
   }
 
   Future<void> _carregarDados() async {
@@ -66,12 +73,10 @@ class _HomePageState extends State<HomePage> {
     final xpInfo = resultados[1] as XpInfo?;
 
     if (xpInfo != null) {
-      // ← NOVO: evento de nível subiu
       if (xpInfo.nivel > nivelAnterior) {
         AnalyticsService.nivelSubiu(xpInfo.nivel);
       }
 
-      // ← NOVO: evento de streak marcante (3, 7, 14, 30 dias)
       const streaksMarcantes = [3, 7, 14, 30];
       if (streaksMarcantes.contains(streak) && streak != streakAnterior) {
         AnalyticsService.streakAtingido(streak);
@@ -129,7 +134,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Row(
                     children: [
-                      // Streak badge
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
@@ -286,7 +290,10 @@ class _HomePageState extends State<HomePage> {
                                 MaterialPageRoute(
                                   builder: (_) => ChatPage(ringo: ringo),
                                 ),
-                              ).then((_) => _carregarDados());
+                              ).then((_) {
+                                _carregarDados();
+                                _buscarMissoes(); // atualiza progresso das missões ao voltar do chat
+                              });
                             }
                           : () {
                               AnalyticsService.homeRingoBloqueadoClick(
@@ -378,7 +385,18 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 10),
-              ...missoes.map((missao) => _cartaoMissao(missao)),
+              if (_missoes.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: CircularProgressIndicator(
+                      color: const Color(0xFF4DA3FF),
+                      strokeWidth: 2,
+                    ),
+                  ),
+                )
+              else
+                ..._missoes.map((missao) => _cartaoMissao(missao)),
               const SizedBox(height: 20),
             ],
           ),
@@ -407,9 +425,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _cartaoMissao(MissaoModel missao) {
-    final borderColor = missao.concluida
-        ? Colors.green
-        : const Color(0xFF4DA3FF);
+    final borderColor =
+        missao.concluida ? Colors.green : const Color(0xFF4DA3FF);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -511,9 +528,8 @@ class _HomePageState extends State<HomePage> {
             style: GoogleFonts.poppins(
               fontSize: 11,
               color: missao.concluida ? Colors.green : Colors.grey,
-              fontWeight: missao.concluida
-                  ? FontWeight.bold
-                  : FontWeight.normal,
+              fontWeight:
+                  missao.concluida ? FontWeight.bold : FontWeight.normal,
             ),
           ),
         ],

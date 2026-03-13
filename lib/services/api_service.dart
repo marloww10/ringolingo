@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:ringolingo/models/conquista_model.dart';
+import 'package:ringolingo/models/missao_model.dart';
 import 'package:ringolingo/models/ringo_model.dart';
 
 class ApiService {
@@ -31,6 +32,23 @@ class ApiService {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data.map((e) => ConquistaModel.fromJson(e)).toList();
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static Future<List<MissaoModel>?> buscarMissoes(int usuarioId) async {
+    try {
+      // /Missões com encode da URL por causa do acento
+      final response = await http
+          .get(Uri.parse('$baseUrl/Miss%C3%B5es?usuarioId=$usuarioId'))
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((e) => MissaoModel.fromJson(e)).toList();
       }
       return null;
     } catch (e) {
