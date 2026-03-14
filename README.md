@@ -6,10 +6,13 @@
 ![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
+![VS Code](https://img.shields.io/badge/VS_Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white)
+![Visual Studio](https://img.shields.io/badge/Visual_Studio-5C2D91?style=for-the-badge&logo=visual-studio&logoColor=white)
 
 Aplicativo mobile de aprendizado de inglês com inteligência artificial.
 
-Projeto desenvolvido pela **RingoTeam**.
+Projeto desenvolvido pelo **RingoTeam**.
 
 ---
 
@@ -48,9 +51,9 @@ Projeto desenvolvido pela **RingoTeam**.
 
 | Integrante | Função |
 |------------|--------|
-| **Marlon Lara** | Desenvolvimento Frontend |
+| **Marlon Lara** | Desenvolvimento Frontend & Design |
 | **Caio Alonso** | Desenvolvimento Backend |
-| **Otávio Augusto** | Desenvolvimento Backend |
+| **Otávio Augusto** | Suporte ao Design |
 | **Pedro Ryan** | Suporte ao Desenvolvimento |
 
 ---

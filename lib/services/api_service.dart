@@ -39,9 +39,27 @@ class ApiService {
     }
   }
 
+  static Future<List<Map<String, dynamic>>?> buscarHistorico(
+    int usuarioId,
+    String nomePersona,
+  ) async {
+    try {
+      final uri = Uri.parse(
+        '$baseUrl/Chat/Historico?usuarioId=$usuarioId&NomePersona=${Uri.encodeComponent(nomePersona)}',
+      );
+      final response = await http.get(uri).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   static Future<List<MissaoModel>?> buscarMissoes(int usuarioId) async {
     try {
-      // /Missões com encode da URL por causa do acento
       final response = await http
           .get(Uri.parse('$baseUrl/Miss%C3%B5es?usuarioId=$usuarioId'))
           .timeout(const Duration(seconds: 10));
@@ -53,6 +71,21 @@ class ApiService {
       return null;
     } catch (e) {
       return null;
+    }
+  }
+
+  static Future<bool> salvarFcmToken(int usuarioId, String fcmToken) async {
+    try {
+      final response = await http
+          .put(
+            Uri.parse('$baseUrl/Usuario/FcmToken?usuarioId=$usuarioId'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'fcmToken': fcmToken}),
+          )
+          .timeout(const Duration(seconds: 10));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
     }
   }
 

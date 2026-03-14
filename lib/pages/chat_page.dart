@@ -18,11 +18,13 @@ class _ChatPageState extends State<ChatPage> {
   final List<Map<String, dynamic>> _mensagens = [];
   bool _digitando = false;
   bool _mostrarXp = false;
+  bool _carregandoHistorico = true;
 
   @override
   void initState() {
     super.initState();
     AnalyticsService.chatAberto(widget.ringo.nome);
+    _carregarHistorico();
   }
 
   @override
@@ -30,6 +32,68 @@ class _ChatPageState extends State<ChatPage> {
     _mensagemController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _carregarHistorico() async {
+    final auth = AuthProvider();
+    if (auth.id == null) {
+      setState(() => _carregandoHistorico = false);
+      return;
+    }
+
+    final historico = await ApiService.buscarHistorico(
+      auth.id!,
+      widget.ringo.nome,
+    );
+
+    if (historico != null && mounted) {
+      final mensagensConvertidas = <Map<String, dynamic>>[];
+
+      // O histórico vem em ordem decrescente, então invertemos
+      for (final msg in historico.reversed) {
+        final isUsuario = msg['usuarioId'] == auth.id &&
+            msg['conteudo'] != null &&
+            !_textoParecerRingo(msg['conteudo'] as String);
+
+        if (isUsuario) {
+          mensagensConvertidas.add({
+            "remetente": "usuario",
+            "texto": msg['conteudo'] ?? '',
+          });
+        } else {
+          final partes = _parsearResposta(msg['conteudo'] ?? '');
+          // só adiciona se tiver conteúdo english parseado
+          if (partes['english']!.isNotEmpty) {
+            mensagensConvertidas.add({
+              "remetente": "ringo",
+              "partes": partes,
+              "mostrarTraducao": false,
+              "mostrarDica": false,
+            });
+          } else {
+            // mensagem do usuário que veio sem formato de ringo
+            mensagensConvertidas.add({
+              "remetente": "usuario",
+              "texto": msg['conteudo'] ?? '',
+            });
+          }
+        }
+      }
+
+      setState(() {
+        _mensagens.addAll(mensagensConvertidas);
+        _carregandoHistorico = false;
+      });
+
+      _scrollParaBaixo();
+    } else {
+      setState(() => _carregandoHistorico = false);
+    }
+  }
+
+  // Detecta se o conteúdo é uma resposta do Ringo (tem label "English:")
+  bool _textoParecerRingo(String texto) {
+    return texto.contains('English:') || texto.contains("Teacher's Tip");
   }
 
   void _scrollParaBaixo() {
@@ -131,6 +195,7 @@ class _ChatPageState extends State<ChatPage> {
           "mostrarDica": false,
         });
       } else {
+        AnalyticsService.erroChat(widget.ringo.nome);
         _mensagens.add({
           "remetente": "ringo",
           "partes": {
@@ -144,7 +209,8 @@ class _ChatPageState extends State<ChatPage> {
         });
       }
     });
-    _mostrarAnimacaoXp();
+
+    if (resposta.sucesso) _mostrarAnimacaoXp();
     _scrollParaBaixo();
   }
 
@@ -174,25 +240,31 @@ class _ChatPageState extends State<ChatPage> {
           Column(
             children: [
               Expanded(
-                child: ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  itemCount: _mensagens.length + (_digitando ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (_digitando && index == _mensagens.length) {
-                      return _bolhaDigitando();
-                    }
-                    final msg = _mensagens[index];
-                    final isUsuario = msg['remetente'] == 'usuario';
-                    if (isUsuario) {
-                      return _bolhaMensagem(msg['texto'], true);
-                    }
-                    return _bolhaRingo(index, msg);
-                  },
-                ),
+                child: _carregandoHistorico
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF4DA3FF),
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        itemCount: _mensagens.length + (_digitando ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (_digitando && index == _mensagens.length) {
+                            return _bolhaDigitando();
+                          }
+                          final msg = _mensagens[index];
+                          final isUsuario = msg['remetente'] == 'usuario';
+                          if (isUsuario) {
+                            return _bolhaMensagem(msg['texto'], true);
+                          }
+                          return _bolhaRingo(index, msg);
+                        },
+                      ),
               ),
               _campoMensagem(),
             ],
