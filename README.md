@@ -9,7 +9,7 @@
 
 Aplicativo mobile de aprendizado de inglês com inteligência artificial.
 
-Projeto desenvolvido pela **RingoTeam**.
+Projeto desenvolvido pelo **RingoTeam**.
 
 ---
 
@@ -48,9 +48,9 @@ Projeto desenvolvido pela **RingoTeam**.
 
 | Integrante | Função |
 |------------|--------|
-| **Marlon Lara** | Desenvolvimento Frontend |
+| **Marlon Lara** | Desenvolvimento Frontend & Design |
 | **Caio Alonso** | Desenvolvimento Backend |
-| **Otávio Augusto** | Desenvolvimento Backend |
+| **Otávio Augusto** | Suporte ao Design |
 | **Pedro Ryan** | Suporte ao Desenvolvimento |
 
 ---
