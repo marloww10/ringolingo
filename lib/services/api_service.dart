@@ -41,13 +41,21 @@ class ApiService {
 
   static Future<List<Map<String, dynamic>>?> buscarHistorico(
     int usuarioId,
-    String nomePersona,
-  ) async {
+    String nomePersona, {
+    String? token,
+  }) async {
     try {
       final uri = Uri.parse(
-        '$baseUrl/Chat/Historico?usuarioId=$usuarioId&NomePersona=${Uri.encodeComponent(nomePersona)}',
+        '$baseUrl/Chat/Historico?NomePersona=${Uri.encodeComponent(nomePersona)}',
       );
-      final response = await http.get(uri).timeout(const Duration(seconds: 10));
+      final response = await http
+          .get(
+            uri,
+            headers: {
+              if (token != null) 'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data.cast<Map<String, dynamic>>();
@@ -221,6 +229,29 @@ class ApiService {
       return null;
     } catch (e) {
       return null;
+    }
+  }
+
+  static Future<bool> reiniciarChat({
+    required String token,
+    required String nomePersona,
+  }) async {
+    try {
+      final uri = Uri.parse(
+        '$baseUrl/Chat/ReiniciarChat?nomePersona=${Uri.encodeComponent(nomePersona)}',
+      );
+      final response = await http
+          .delete(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          )
+          .timeout(const Duration(seconds: 10));
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
     }
   }
 }

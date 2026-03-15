@@ -44,6 +44,7 @@ class _ChatPageState extends State<ChatPage> {
     final historico = await ApiService.buscarHistorico(
       auth.id!,
       widget.ringo.nome,
+      token: auth.token,
     );
 
     if (historico != null && mounted) {
@@ -164,6 +165,50 @@ class _ChatPageState extends State<ChatPage> {
     };
   }
 
+  Future<void> _reiniciarChat() async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Reiniciar conversa'),
+        content: const Text(
+          'O histórico desta conversa será apagado e o Ringo vai esquecer tudo que foi dito. Tem certeza?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            child: const Text('Reiniciar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true) return;
+
+    final sucesso = await ApiService.reiniciarChat(
+      token: AuthProvider().token ?? '',
+      nomePersona: widget.ringo.nome,
+    );
+
+    if (!mounted) return;
+
+    if (sucesso) {
+      setState(() => _mensagens.clear());
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível reiniciar. Tente novamente.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
   Future<void> _enviarMensagem() async {
     final texto = _mensagemController.text.trim();
     if (texto.isEmpty || _digitando) return;
@@ -234,6 +279,13 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            onPressed: _reiniciarChat,
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'Reiniciar conversa',
+          ),
+        ],
       ),
       body: Stack(
         children: [
