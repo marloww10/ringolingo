@@ -16,10 +16,27 @@ class PerfilPage extends StatefulWidget {
 }
 
 class _PerfilPageState extends State<PerfilPage> {
+  List<String> _badgesDesbloqueadas = [];
+
   @override
   void initState() {
     super.initState();
     _atualizarXp();
+    _carregarBadges();
+  }
+
+  Future<void> _carregarBadges() async {
+    final auth = AuthProvider();
+    if (auth.id == null) return;
+    final conquistas = await ApiService.buscarConquistas(auth.id!);
+    if (conquistas != null && mounted) {
+      setState(() {
+        _badgesDesbloqueadas = conquistas
+            .where((c) => c.desbloqueada)
+            .map((c) => c.nome)
+            .toList();
+      });
+    }
   }
 
   Future<void> _atualizarXp() async {
@@ -92,7 +109,6 @@ class _PerfilPageState extends State<PerfilPage> {
             // ── HEADER ──
             Container(
               width: double.infinity,
-              height: 310,
               decoration: const BoxDecoration(
                 color: Color(0xFF4DA3FF),
                 borderRadius: BorderRadius.only(
@@ -166,12 +182,56 @@ class _PerfilPageState extends State<PerfilPage> {
                         ],
                       ),
                     ),
+                    if (_badgesDesbloqueadas.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _badgesDesbloqueadas.map((nome) {
+                          return Tooltip(
+                            message: nome,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.5),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    '🏆',
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    nome,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 6),
+                    ],
                   ],
                 ),
               ),
             ),
-
-            // ── BOTÕES ──
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
               child: Column(

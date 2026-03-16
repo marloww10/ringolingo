@@ -22,17 +22,38 @@ class _HomePageState extends State<HomePage> {
   int _nivel = 1;
   int _xpDoNivel = 0;
   int _xpNecessario = 500;
+  int _xpTotal = 0;
   bool _carregando = true;
+  bool _erroMissoes = false;
+  bool _erroRingos = false;
 
   List<MissaoModel> _missoes = [];
-  List<RingoModel> meusRingos = [];
+  List<RingoModel> _ringos = [];
 
-  Future<void> buscarpersona() async {
+  @override
+  void initState() {
+    super.initState();
+    _carregarTudo();
+  }
+
+  Future<void> _carregarTudo() async {
+    setState(() {
+      _carregando = true;
+      _erroMissoes = false;
+      _erroRingos = false;
+    });
+    await Future.wait([_carregarDados(), _buscarPersonas(), _buscarMissoes()]);
+  }
+
+  Future<void> _buscarPersonas() async {
     final personas = await ApiService.buscarPersonas();
-    if (personas != null && mounted) {
-      setState(() => meusRingos = personas);
-    } else if (personas == null) {
-      AnalyticsService.erroCarregarPersonas();
+    if (mounted) {
+      if (personas != null) {
+        setState(() => _ringos = personas);
+      } else {
+        AnalyticsService.erroCarregarPersonas();
+        setState(() => _erroRingos = true);
+      }
     }
   }
 
@@ -40,17 +61,13 @@ class _HomePageState extends State<HomePage> {
     final id = AuthProvider().id;
     if (id == null) return;
     final missoes = await ApiService.buscarMissoes(id);
-    if (missoes != null && mounted) {
-      setState(() => _missoes = missoes);
+    if (mounted) {
+      if (missoes != null) {
+        setState(() => _missoes = missoes);
+      } else {
+        setState(() => _erroMissoes = true);
+      }
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _carregarDados();
-    buscarpersona();
-    _buscarMissoes();
   }
 
   Future<void> _carregarDados() async {
@@ -96,6 +113,7 @@ class _HomePageState extends State<HomePage> {
         _streak = streak;
         _nivel = xpInfo?.nivel ?? auth.nivel ?? 1;
         _xpDoNivel = xpInfo?.xpDoNivel ?? auth.xpDoNivel ?? 0;
+        _xpTotal = xpInfo?.xpTotal ?? auth.xpTotal ?? 0;
         _xpNecessario =
             xpInfo?.xpNecessarioProximoNivel ??
             auth.xpNecessarioProximoNivel ??
@@ -105,12 +123,63 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  String _saudacaoProgresso() {
+    if (_streak >= 7) return 'Incrível, $_streak dias seguidos! 🔥';
+    if (_streak >= 3) return '$_streak dias de sequência! 💪';
+    if (_xpDoNivel == 0 && _xpTotal == 0) return 'Que tal começar hoje? 😊';
+    return 'Continue assim! 😊';
+  }
+
+  RingoModel? _proximoRingoADesbloquear() {
+    final bloqueados = _ringos
+        .where((r) => r.nivelNecessario > _nivel)
+        .toList();
+    if (bloqueados.isEmpty) return null;
+    bloqueados.sort((a, b) => a.nivelNecessario.compareTo(b.nivelNecessario));
+    return bloqueados.first;
+  }
+
+  int _xpParaProximoRingo(RingoModel ringo) {
+    int xpTotal = 0;
+    for (int n = _nivel; n < ringo.nivelNecessario; n++) {
+      xpTotal += _xpNecessarioPorNivel(n);
+    }
+    return (xpTotal - _xpDoNivel).clamp(0, 999999);
+  }
+
+  int _xpNecessarioPorNivel(int nivel) {
+    const tabela = {
+      1: 500,
+      2: 750,
+      3: 1000,
+      4: 1500,
+      5: 2000,
+      6: 3000,
+      7: 4500,
+      8: 7000,
+      9: 10500,
+      10: 15500,
+      11: 23000,
+      12: 34500,
+      13: 52000,
+      14: 78000,
+      15: 117000,
+      16: 175500,
+      17: 263000,
+      18: 395000,
+      19: 590000,
+      20: 885000,
+    };
+    return tabela[nivel] ?? 885000;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final nome = AuthProvider().nomeUsuario ?? "Usuário";
+    final nome = AuthProvider().nomeUsuario ?? 'Usuário';
     final progresso = _xpNecessario > 0
         ? (_xpDoNivel / _xpNecessario).clamp(0.0, 1.0)
         : 0.0;
+    final proximoRingo = _proximoRingoADesbloquear();
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -145,7 +214,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         child: Row(
                           children: [
-                            const Text("🔥", style: TextStyle(fontSize: 16)),
+                            const Text('🔥', style: TextStyle(fontSize: 16)),
                             const SizedBox(width: 4),
                             _carregando
                                 ? const SizedBox(
@@ -157,7 +226,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   )
                                 : Text(
-                                    "$_streak",
+                                    '$_streak',
                                     style: GoogleFonts.poppins(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
@@ -186,7 +255,7 @@ class _HomePageState extends State<HomePage> {
                                           as ImageProvider
                                     : FileImage(File(AuthProvider().fotoUrl!)))
                               : const AssetImage(
-                                  "lib/assets/ringoEntrevistador.png",
+                                  'lib/assets/ringoEntrevistador.png',
                                 ),
                         ),
                       ),
@@ -214,16 +283,18 @@ class _HomePageState extends State<HomePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              "Seu progresso",
+                              'Seu progresso',
                               style: TextStyle(
                                 color: Colors.grey,
                                 fontSize: 13,
                               ),
                             ),
                             const SizedBox(height: 6),
-                            const Text(
-                              "Continue assim! 😊",
-                              style: TextStyle(
+                            Text(
+                              _carregando
+                                  ? 'Carregando...'
+                                  : _saudacaoProgresso(),
+                              style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),
@@ -231,7 +302,7 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                         Text(
-                          "Nv.$_nivel",
+                          'Nv.$_nivel',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 32,
@@ -254,9 +325,37 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      "$_xpDoNivel / $_xpNecessario XP",
+                      '$_xpDoNivel / $_xpNecessario XP',
                       style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                     ),
+                    if (!_carregando && proximoRingo != null) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('🎯', style: TextStyle(fontSize: 13)),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Faltam ${_xpParaProximoRingo(proximoRingo)} XP para o ${proximoRingo.nome}',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: const Color(0xFF4DA3FF),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -264,7 +363,7 @@ class _HomePageState extends State<HomePage> {
 
               // ── RINGOS ──
               Text(
-                "Ringo em destaque",
+                'Ringo em destaque',
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
@@ -274,123 +373,157 @@ class _HomePageState extends State<HomePage> {
               SizedBox(
                 height: 200,
                 width: double.infinity,
-                child: ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  scrollDirection: Axis.horizontal,
-                  itemCount: meusRingos.length,
-                  itemBuilder: (context, index) {
-                    final ringo = meusRingos[index];
-                    final desbloqueado = _nivel >= ringo.nivelNecessario;
-                    return GestureDetector(
-                      onTap: desbloqueado
-                          ? () {
-                              AnalyticsService.homeRingoAberto(ringo.nome);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => ChatPage(ringo: ringo),
-                                ),
-                              ).then((_) {
-                                _carregarDados();
-                                _buscarMissoes(); // atualiza progresso das missões ao voltar do chat
-                              });
-                            }
-                          : () {
-                              AnalyticsService.homeRingoBloqueadoClick(
-                                ringo.nome,
-                              );
-                              _mostrarDialogBloqueado(ringo);
-                            },
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border(
-                            bottom: BorderSide(
-                              color: desbloqueado
-                                  ? const Color(0xFF4DA3FF)
-                                  : Colors.grey.shade400,
-                              width: 6,
-                            ),
-                            left: BorderSide(
-                              color: desbloqueado
-                                  ? const Color(0xFF4DA3FF)
-                                  : Colors.grey.shade400,
-                              width: 2,
-                            ),
-                            right: BorderSide(
-                              color: desbloqueado
-                                  ? const Color(0xFF4DA3FF)
-                                  : Colors.grey.shade400,
-                              width: 2,
-                            ),
-                            top: BorderSide(
-                              color: desbloqueado
-                                  ? const Color(0xFF4DA3FF)
-                                  : Colors.grey.shade400,
-                              width: 2,
+                child: _erroRingos
+                    ? Center(
+                        child: TextButton.icon(
+                          onPressed: () {
+                            setState(() => _erroRingos = false);
+                            _buscarPersonas();
+                          },
+                          icon: const Icon(
+                            Icons.refresh_rounded,
+                            color: Color(0xFF4DA3FF),
+                          ),
+                          label: Text(
+                            'Tentar novamente',
+                            style: GoogleFonts.poppins(
+                              color: const Color(0xFF4DA3FF),
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                        padding: const EdgeInsets.only(top: 20),
-                        width: 150,
-                        child: Column(
-                          children: [
-                            Opacity(
-                              opacity: desbloqueado ? 1.0 : 0.4,
-                              child: Image.network(
-                                'http://10.0.2.2:5269${ringo.imagemUrl}',
-                                height: 100,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(
-                                      Icons.person,
-                                      size: 60,
-                                      color: Colors.grey,
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _ringos.isEmpty ? 3 : _ringos.length,
+                        itemBuilder: (context, index) {
+                          if (_ringos.isEmpty) {
+                            return _skeletonRingo();
+                          }
+                          final ringo = _ringos[index];
+                          final desbloqueado = _nivel >= ringo.nivelNecessario;
+                          return GestureDetector(
+                            onTap: desbloqueado
+                                ? () {
+                                    AnalyticsService.homeRingoAberto(
+                                      ringo.nome,
+                                    );
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => ChatPage(ringo: ringo),
+                                      ),
+                                    ).then((_) {
+                                      _carregarDados();
+                                      _buscarMissoes();
+                                    });
+                                  }
+                                : () {
+                                    AnalyticsService.homeRingoBloqueadoClick(
+                                      ringo.nome,
+                                    );
+                                    _mostrarDialogBloqueado(ringo);
+                                  },
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: desbloqueado
+                                        ? const Color(0xFF4DA3FF)
+                                        : Colors.grey.shade400,
+                                    width: 6,
+                                  ),
+                                  left: BorderSide(
+                                    color: desbloqueado
+                                        ? const Color(0xFF4DA3FF)
+                                        : Colors.grey.shade400,
+                                    width: 2,
+                                  ),
+                                  right: BorderSide(
+                                    color: desbloqueado
+                                        ? const Color(0xFF4DA3FF)
+                                        : Colors.grey.shade400,
+                                    width: 2,
+                                  ),
+                                  top: BorderSide(
+                                    color: desbloqueado
+                                        ? const Color(0xFF4DA3FF)
+                                        : Colors.grey.shade400,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                              padding: const EdgeInsets.only(top: 20),
+                              width: 150,
+                              child: Column(
+                                children: [
+                                  Opacity(
+                                    opacity: desbloqueado ? 1.0 : 0.4,
+                                    child: Image.network(
+                                      'http://10.0.2.2:5269${ringo.imagemUrl}',
+                                      height: 100,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Icon(
+                                                Icons.person,
+                                                size: 60,
+                                                color: Colors.grey,
+                                              ),
                                     ),
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    ringo.nome,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  Text(
+                                    desbloqueado
+                                        ? 'Disponível'
+                                        : 'Nv. ${ringo.nivelNecessario}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: desbloqueado
+                                          ? const Color(0xFF4DA3FF)
+                                          : Colors.grey,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 5),
-                            Text(
-                              ringo.nome,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            Text(
-                              desbloqueado
-                                  ? "Disponível"
-                                  : "Nv. ${ringo.nivelNecessario}",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: desbloqueado
-                                    ? const Color(0xFF4DA3FF)
-                                    : Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
 
               // ── MISSÕES ──
               Text(
-                "Missões disponíveis",
+                'Missões disponíveis',
                 style: GoogleFonts.poppins(
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 10),
-              if (_missoes.isEmpty)
-                Center(
+              if (_erroMissoes)
+                _erroInline(
+                  mensagem: 'Não foi possível carregar as missões.',
+                  onTentar: () {
+                    setState(() => _erroMissoes = false);
+                    _buscarMissoes();
+                  },
+                )
+              else if (_missoes.isEmpty)
+                const Center(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    padding: EdgeInsets.symmetric(vertical: 20),
                     child: CircularProgressIndicator(
-                      color: const Color(0xFF4DA3FF),
+                      color: Color(0xFF4DA3FF),
                       strokeWidth: 2,
                     ),
                   ),
@@ -405,19 +538,81 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _erroInline({
+    required String mensagem,
+    required VoidCallback onTentar,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Center(
+        child: Column(
+          children: [
+            Text(
+              mensagem,
+              style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            TextButton.icon(
+              onPressed: onTentar,
+              icon: const Icon(Icons.refresh_rounded, color: Color(0xFF4DA3FF)),
+              label: Text(
+                'Tentar novamente',
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFF4DA3FF),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _skeletonRingo() {
+    return Container(
+      margin: const EdgeInsets.only(right: 10),
+      width: 150,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200, width: 2),
+      ),
+      padding: const EdgeInsets.only(top: 20),
+      child: Column(
+        children: [
+          _shimmerBox(width: 100, height: 100, radius: 8),
+          const SizedBox(height: 8),
+          _shimmerBox(width: 80, height: 12, radius: 6),
+          const SizedBox(height: 6),
+          _shimmerBox(width: 60, height: 10, radius: 6),
+        ],
+      ),
+    );
+  }
+
+  Widget _shimmerBox({
+    required double width,
+    required double height,
+    required double radius,
+  }) {
+    return _ShimmerBox(width: width, height: height, radius: radius);
+  }
+
   void _mostrarDialogBloqueado(RingoModel ringo) {
+    final xpFaltando = _xpParaProximoRingo(ringo);
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text("🔒 Ringo bloqueado"),
+        title: const Text('🔒 Ringo bloqueado'),
         content: Text(
-          "Alcance o nível ${ringo.nivelNecessario} para desbloquear o ${ringo.nome}.",
+          'Faltam $xpFaltando XP para desbloquear o ${ringo.nome}.\n\nAlcance o nível ${ringo.nivelNecessario} para liberar!',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Ok"),
+            child: const Text('Ok'),
           ),
         ],
       ),
@@ -425,8 +620,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _cartaoMissao(MissaoModel missao) {
-    final borderColor =
-        missao.concluida ? Colors.green : const Color(0xFF4DA3FF);
+    final borderColor = missao.concluida
+        ? Colors.green
+        : const Color(0xFF4DA3FF);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -480,7 +676,7 @@ class _HomePageState extends State<HomePage> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Text(
-                        "✓ Feito",
+                        '✓ Feito',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -498,7 +694,7 @@ class _HomePageState extends State<HomePage> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        "+${missao.xpRecompensa} XP",
+                        '+${missao.xpRecompensa} XP',
                         style: const TextStyle(
                           color: Color(0xFF4DA3FF),
                           fontWeight: FontWeight.bold,
@@ -523,17 +719,78 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 6),
           Text(
             missao.concluida
-                ? "Missão concluída!"
-                : "${missao.progressoAtual}/${missao.meta}",
+                ? 'Missão concluída!'
+                : '${missao.progressoAtual}/${missao.meta}',
             style: GoogleFonts.poppins(
               fontSize: 11,
               color: missao.concluida ? Colors.green : Colors.grey,
-              fontWeight:
-                  missao.concluida ? FontWeight.bold : FontWeight.normal,
+              fontWeight: missao.concluida
+                  ? FontWeight.bold
+                  : FontWeight.normal,
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ShimmerBox extends StatefulWidget {
+  final double width;
+  final double height;
+  final double radius;
+
+  const _ShimmerBox({
+    required this.width,
+    required this.height,
+    required this.radius,
+  });
+
+  @override
+  State<_ShimmerBox> createState() => _ShimmerBoxState();
+}
+
+class _ShimmerBoxState extends State<_ShimmerBox>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+    _animation = Tween<double>(
+      begin: 0.3,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _animation.value,
+          child: Container(
+            width: widget.width,
+            height: widget.height,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(widget.radius),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -35,7 +35,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => carregando = false);
 
     if (resposta.sucesso) {
-      await AnalyticsService.loginSucesso(); // ← NOVO
+      await AnalyticsService.loginSucesso();
       final dados = resposta.dados;
       AuthProvider().salvarSessao(
         token: dados['token'],
@@ -45,10 +45,11 @@ class _LoginPageState extends State<LoginPage> {
         xpTotal: (dados['xpTotal'] ?? 0) as int,
         xpDoNivel: (dados['xpDoNivel'] ?? 0) as int,
       );
-      if (mounted) {
-        Navigator.pushReplacement(
+      if (mounted) {  
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const HomePage()),
+          (route) => false,
         );
       }
     } else {

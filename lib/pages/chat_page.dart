@@ -52,7 +52,8 @@ class _ChatPageState extends State<ChatPage> {
 
       // O histórico vem em ordem decrescente, então invertemos
       for (final msg in historico.reversed) {
-        final isUsuario = msg['usuarioId'] == auth.id &&
+        final isUsuario =
+            msg['usuarioId'] == auth.id &&
             msg['conteudo'] != null &&
             !_textoParecerRingo(msg['conteudo'] as String);
 
@@ -566,35 +567,20 @@ class _ChatPageState extends State<ChatPage> {
             bottomRight: Radius.circular(16),
           ),
         ),
-        child: Row(
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _ponto(0),
-            const SizedBox(width: 4),
-            _ponto(200),
-            const SizedBox(width: 4),
-            _ponto(400),
+            _PontoDigitando(delay: Duration(milliseconds: 0)),
+            SizedBox(width: 4),
+            _PontoDigitando(delay: Duration(milliseconds: 200)),
+            SizedBox(width: 4),
+            _PontoDigitando(delay: Duration(milliseconds: 400)),
           ],
         ),
       ),
     );
   }
 
-  Widget _ponto(int delayMs) {
-    return TweenAnimationBuilder(
-      tween: Tween<double>(begin: 0.3, end: 1),
-      duration: Duration(milliseconds: 600 + delayMs),
-      builder: (context, value, child) {
-        return Opacity(
-          opacity: value,
-          child: const CircleAvatar(
-            radius: 4,
-            backgroundColor: Color(0xFF4DA3FF),
-          ),
-        );
-      },
-    );
-  }
 
   Widget _campoMensagem() {
     return Container(
@@ -638,6 +624,58 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _PontoDigitando extends StatefulWidget {
+  final Duration delay;
+  const _PontoDigitando({required this.delay});
+
+  @override
+  State<_PontoDigitando> createState() => _PontoDigitandoState();
+}
+
+class _PontoDigitandoState extends State<_PontoDigitando>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _animation = Tween<double>(
+      begin: 0.3,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    Future.delayed(widget.delay, () {
+      if (mounted) _controller.repeat(reverse: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _animation.value,
+          child: const CircleAvatar(
+            radius: 4,
+            backgroundColor: Color(0xFF4DA3FF),
+          ),
+        );
+      },
     );
   }
 }

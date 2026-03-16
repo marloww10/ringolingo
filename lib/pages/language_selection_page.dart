@@ -35,9 +35,10 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('idioma_app', _idiomaApp!);
 
-    Navigator.pushReplacement(
+    Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const HomePage()),
+      (route) => false,
     );
   }
 
@@ -98,6 +99,7 @@ class _LanguageSelectionPageState extends State<LanguageSelectionPage> {
       appBar: AppBar(
         title: Text("Selecione o idioma"),
         backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
