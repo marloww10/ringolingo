@@ -203,14 +203,10 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Row(
                     children: [
-                      Container(
+                      Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFEEDD),
-                          borderRadius: BorderRadius.circular(20),
+                          horizontal: 15,
+                          vertical: 2,
                         ),
                         child: Row(
                           children: [
@@ -247,6 +243,7 @@ class _HomePageState extends State<HomePage> {
                           ).then((_) => setState(() {}));
                         },
                         child: CircleAvatar(
+                          radius: 22,
                           backgroundImage:
                               AuthProvider().fotoUrl != null &&
                                   AuthProvider().fotoUrl!.isNotEmpty
