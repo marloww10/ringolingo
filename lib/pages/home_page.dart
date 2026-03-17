@@ -516,15 +516,7 @@ class _HomePageState extends State<HomePage> {
                   },
                 )
               else if (_missoes.isEmpty)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF4DA3FF),
-                      strokeWidth: 2,
-                    ),
-                  ),
-                )
+                Column(children: List.generate(3, (_) => _skeletonMissao()))
               else
                 ..._missoes.map((missao) => _cartaoMissao(missao)),
               const SizedBox(height: 20),
@@ -594,6 +586,45 @@ class _HomePageState extends State<HomePage> {
     required double radius,
   }) {
     return _ShimmerBox(width: width, height: height, radius: radius);
+  }
+
+  Widget _skeletonMissao() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade100, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _shimmerBox(width: 36, height: 36, radius: 8),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _shimmerBox(width: 120, height: 12, radius: 6),
+                    const SizedBox(height: 6),
+                    _shimmerBox(width: 180, height: 10, radius: 6),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              _shimmerBox(width: 60, height: 24, radius: 12),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _shimmerBox(width: double.infinity, height: 8, radius: 10),
+          const SizedBox(height: 6),
+          _shimmerBox(width: 60, height: 10, radius: 6),
+        ],
+      ),
+    );
   }
 
   void _mostrarDialogBloqueado(RingoModel ringo) {
