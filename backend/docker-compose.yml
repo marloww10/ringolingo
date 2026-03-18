@@ -1,0 +1,34 @@
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: ringolingo_sql
+    restart: always
+    environment:
+      SA_PASSWORD: "Ringo@123"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+
+  redis:
+    image: redis:7
+    container_name: ringolingo_redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ringolingo_rabbit
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ringo
+      RABBITMQ_DEFAULT_PASS: ringo123
+    ports:
+      - "5672:5672"   # porta para apps
+      - "15672:15672" # painel web
+
+volumes:
+  sql_data:
