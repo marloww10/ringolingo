@@ -1,0 +1,824 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:ringolingo/models/missao_model.dart';
+import 'package:ringolingo/models/ringo_model.dart';
+import 'package:ringolingo/pages/chat_page.dart';
+import 'package:ringolingo/pages/perfil_page.dart';
+import 'package:ringolingo/providers/auth_provider.dart';
+import 'package:ringolingo/services/analytics_service.dart';
+import 'package:ringolingo/services/api_service.dart';
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _streak = 0;
+  int _nivel = 1;
+  int _xpDoNivel = 0;
+  int _xpNecessario = 500;
+  int _xpTotal = 0;
+  bool _carregando = true;
+  bool _erroMissoes = false;
+  bool _erroRingos = false;
+
+  List<MissaoModel> _missoes = [];
+  List<RingoModel> _ringos = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarTudo();
+  }
+
+  Future<void> _carregarTudo() async {
+    setState(() {
+      _carregando = true;
+      _erroMissoes = false;
+      _erroRingos = false;
+    });
+    await Future.wait([_carregarDados(), _buscarPersonas(), _buscarMissoes()]);
+  }
+
+  Future<void> _buscarPersonas() async {
+    final personas = await ApiService.buscarPersonas();
+    if (mounted) {
+      if (personas != null) {
+        setState(() => _ringos = personas);
+      } else {
+        AnalyticsService.erroCarregarPersonas();
+        setState(() => _erroRingos = true);
+      }
+    }
+  }
+
+  Future<void> _buscarMissoes() async {
+    final id = AuthProvider().id;
+    if (id == null) return;
+    final missoes = await ApiService.buscarMissoes(id);
+    if (mounted) {
+      if (missoes != null) {
+        setState(() => _missoes = missoes);
+      } else {
+        setState(() => _erroMissoes = true);
+      }
+    }
+  }
+
+  Future<void> _carregarDados() async {
+    final auth = AuthProvider();
+    final id = auth.id;
+    final nivelAnterior = auth.nivel ?? 1;
+    final streakAnterior = auth.streak ?? 0;
+
+    if (id == null) {
+      setState(() => _carregando = false);
+      return;
+    }
+
+    final resultados = await Future.wait([
+      ApiService.buscarStreak(id),
+      ApiService.buscarXp(id),
+    ]);
+
+    final streak = resultados[0] as int;
+    final xpInfo = resultados[1] as XpInfo?;
+
+    if (xpInfo != null) {
+      if (xpInfo.nivel > nivelAnterior) {
+        AnalyticsService.nivelSubiu(xpInfo.nivel);
+      }
+
+      const streaksMarcantes = [3, 7, 14, 30];
+      if (streaksMarcantes.contains(streak) && streak != streakAnterior) {
+        AnalyticsService.streakAtingido(streak);
+      }
+
+      auth.atualizarXp(
+        xpInfo.nivel,
+        xpInfo.xpTotal,
+        xpInfo.xpDoNivel,
+        xpInfo.xpNecessarioProximoNivel,
+      );
+      auth.atualizarStreak(streak);
+    }
+
+    if (mounted) {
+      setState(() {
+        _streak = streak;
+        _nivel = xpInfo?.nivel ?? auth.nivel ?? 1;
+        _xpDoNivel = xpInfo?.xpDoNivel ?? auth.xpDoNivel ?? 0;
+        _xpTotal = xpInfo?.xpTotal ?? auth.xpTotal ?? 0;
+        _xpNecessario =
+            xpInfo?.xpNecessarioProximoNivel ??
+            auth.xpNecessarioProximoNivel ??
+            500;
+        _carregando = false;
+      });
+    }
+  }
+
+  String _saudacaoProgresso() {
+    if (_streak >= 7) return 'Incrível, $_streak dias seguidos! 🔥';
+    if (_streak >= 3) return '$_streak dias de sequência! 💪';
+    if (_xpDoNivel == 0 && _xpTotal == 0) return 'Que tal começar hoje? 😊';
+    return 'Continue assim! 😊';
+  }
+
+  RingoModel? _proximoRingoADesbloquear() {
+    final bloqueados = _ringos
+        .where((r) => r.nivelNecessario > _nivel)
+        .toList();
+    if (bloqueados.isEmpty) return null;
+    bloqueados.sort((a, b) => a.nivelNecessario.compareTo(b.nivelNecessario));
+    return bloqueados.first;
+  }
+
+  int _xpParaProximoRingo(RingoModel ringo) {
+    int xpTotal = 0;
+    for (int n = _nivel; n < ringo.nivelNecessario; n++) {
+      xpTotal += _xpNecessarioPorNivel(n);
+    }
+    return (xpTotal - _xpDoNivel).clamp(0, 999999);
+  }
+
+  int _xpNecessarioPorNivel(int nivel) {
+    const tabela = {
+      1: 500,
+      2: 750,
+      3: 1000,
+      4: 1500,
+      5: 2000,
+      6: 3000,
+      7: 4500,
+      8: 7000,
+      9: 10500,
+      10: 15500,
+      11: 23000,
+      12: 34500,
+      13: 52000,
+      14: 78000,
+      15: 117000,
+      16: 175500,
+      17: 263000,
+      18: 395000,
+      19: 590000,
+      20: 885000,
+    };
+    return tabela[nivel] ?? 885000;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final nome = AuthProvider().nomeUsuario ?? 'Usuário';
+    final progresso = _xpNecessario > 0
+        ? (_xpDoNivel / _xpNecessario).clamp(0.0, 1.0)
+        : 0.0;
+    final proximoRingo = _proximoRingoADesbloquear();
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+
+              // ── HEADER ──
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Olá, $nome!',
+                    style: GoogleFonts.poppins(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                          vertical: 2,
+                        ),
+                        child: Row(
+                          children: [
+                            const Text('🔥', style: TextStyle(fontSize: 16)),
+                            const SizedBox(width: 4),
+                            _carregando
+                                ? const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Color(0xFFFF6B00),
+                                    ),
+                                  )
+                                : Text(
+                                    '$_streak',
+                                    style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      InkWell(
+                        onTap: () {
+                          AnalyticsService.homePerfilAberto();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PerfilPage(),
+                            ),
+                          ).then((_) => setState(() {}));
+                        },
+                        child: CircleAvatar(
+                          radius: 22,
+                          backgroundImage:
+                              AuthProvider().fotoUrl != null &&
+                                  AuthProvider().fotoUrl!.isNotEmpty
+                              ? (AuthProvider().fotoUrl!.startsWith('http')
+                                    ? NetworkImage(AuthProvider().fotoUrl!)
+                                          as ImageProvider
+                                    : FileImage(File(AuthProvider().fotoUrl!)))
+                              : const AssetImage(
+                                  'lib/assets/ringoEntrevistador.png',
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // ── CARD DE PROGRESSO ──
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEEF4FF),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Seu progresso',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 13,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              _carregando
+                                  ? 'Carregando...'
+                                  : _saudacaoProgresso(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          'Nv.$_nivel',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 32,
+                            color: Color(0xFF4DA3FF),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: progresso,
+                        minHeight: 8,
+                        backgroundColor: const Color(0xFFD0E4FF),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFF4DA3FF),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '$_xpDoNivel / $_xpNecessario XP',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                    ),
+                    if (!_carregando && proximoRingo != null) ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('🎯', style: TextStyle(fontSize: 13)),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Faltam ${_xpParaProximoRingo(proximoRingo)} XP para o ${proximoRingo.nome}',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: const Color(0xFF4DA3FF),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 15),
+
+              // ── RINGOS ──
+              Text(
+                'Ringo em destaque',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 5),
+              SizedBox(
+                height: 200,
+                width: double.infinity,
+                child: _erroRingos
+                    ? Center(
+                        child: TextButton.icon(
+                          onPressed: () {
+                            setState(() => _erroRingos = false);
+                            _buscarPersonas();
+                          },
+                          icon: const Icon(
+                            Icons.refresh_rounded,
+                            color: Color(0xFF4DA3FF),
+                          ),
+                          label: Text(
+                            'Tentar novamente',
+                            style: GoogleFonts.poppins(
+                              color: const Color(0xFF4DA3FF),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _ringos.isEmpty ? 3 : _ringos.length,
+                        itemBuilder: (context, index) {
+                          if (_ringos.isEmpty) {
+                            return _skeletonRingo();
+                          }
+                          final ringo = _ringos[index];
+                          final desbloqueado = _nivel >= ringo.nivelNecessario;
+                          return GestureDetector(
+                            onTap: desbloqueado
+                                ? () {
+                                    AnalyticsService.homeRingoAberto(
+                                      ringo.nome,
+                                    );
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => ChatPage(ringo: ringo),
+                                      ),
+                                    ).then((_) {
+                                      _carregarDados();
+                                      _buscarMissoes();
+                                    });
+                                  }
+                                : () {
+                                    AnalyticsService.homeRingoBloqueadoClick(
+                                      ringo.nome,
+                                    );
+                                    _mostrarDialogBloqueado(ringo);
+                                  },
+                            child: Container(
+                              margin: const EdgeInsets.only(right: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: desbloqueado
+                                        ? const Color(0xFF4DA3FF)
+                                        : Colors.grey.shade400,
+                                    width: 6,
+                                  ),
+                                  left: BorderSide(
+                                    color: desbloqueado
+                                        ? const Color(0xFF4DA3FF)
+                                        : Colors.grey.shade400,
+                                    width: 2,
+                                  ),
+                                  right: BorderSide(
+                                    color: desbloqueado
+                                        ? const Color(0xFF4DA3FF)
+                                        : Colors.grey.shade400,
+                                    width: 2,
+                                  ),
+                                  top: BorderSide(
+                                    color: desbloqueado
+                                        ? const Color(0xFF4DA3FF)
+                                        : Colors.grey.shade400,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                              padding: const EdgeInsets.only(top: 20),
+                              width: 150,
+                              child: Column(
+                                children: [
+                                  Opacity(
+                                    opacity: desbloqueado ? 1.0 : 0.4,
+                                    child: Image.network(
+                                      'http://10.0.2.2:5269${ringo.imagemUrl}',
+                                      height: 100,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Icon(
+                                                Icons.person,
+                                                size: 60,
+                                                color: Colors.grey,
+                                              ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    ringo.nome,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  Text(
+                                    desbloqueado
+                                        ? 'Disponível'
+                                        : 'Nv. ${ringo.nivelNecessario}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: desbloqueado
+                                          ? const Color(0xFF4DA3FF)
+                                          : Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+
+              // ── MISSÕES ──
+              Text(
+                'Missões disponíveis',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 10),
+              if (_erroMissoes)
+                _erroInline(
+                  mensagem: 'Não foi possível carregar as missões.',
+                  onTentar: () {
+                    setState(() => _erroMissoes = false);
+                    _buscarMissoes();
+                  },
+                )
+              else if (_missoes.isEmpty)
+                Column(children: List.generate(3, (_) => _skeletonMissao()))
+              else
+                ..._missoes.map((missao) => _cartaoMissao(missao)),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _erroInline({
+    required String mensagem,
+    required VoidCallback onTentar,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Center(
+        child: Column(
+          children: [
+            Text(
+              mensagem,
+              style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            TextButton.icon(
+              onPressed: onTentar,
+              icon: const Icon(Icons.refresh_rounded, color: Color(0xFF4DA3FF)),
+              label: Text(
+                'Tentar novamente',
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFF4DA3FF),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _skeletonRingo() {
+    return Container(
+      margin: const EdgeInsets.only(right: 10),
+      width: 150,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200, width: 2),
+      ),
+      padding: const EdgeInsets.only(top: 20),
+      child: Column(
+        children: [
+          _shimmerBox(width: 100, height: 100, radius: 8),
+          const SizedBox(height: 8),
+          _shimmerBox(width: 80, height: 12, radius: 6),
+          const SizedBox(height: 6),
+          _shimmerBox(width: 60, height: 10, radius: 6),
+        ],
+      ),
+    );
+  }
+
+  Widget _shimmerBox({
+    required double width,
+    required double height,
+    required double radius,
+  }) {
+    return _ShimmerBox(width: width, height: height, radius: radius);
+  }
+
+  Widget _skeletonMissao() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade100, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _shimmerBox(width: 36, height: 36, radius: 8),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _shimmerBox(width: 120, height: 12, radius: 6),
+                    const SizedBox(height: 6),
+                    _shimmerBox(width: 180, height: 10, radius: 6),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              _shimmerBox(width: 60, height: 24, radius: 12),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _shimmerBox(width: double.infinity, height: 8, radius: 10),
+          const SizedBox(height: 6),
+          _shimmerBox(width: 60, height: 10, radius: 6),
+        ],
+      ),
+    );
+  }
+
+  void _mostrarDialogBloqueado(RingoModel ringo) {
+    final xpFaltando = _xpParaProximoRingo(ringo);
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('🔒 Ringo bloqueado'),
+        content: Text(
+          'Faltam $xpFaltando XP para desbloquear o ${ringo.nome}.\n\nAlcance o nível ${ringo.nivelNecessario} para liberar!',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Ok'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _cartaoMissao(MissaoModel missao) {
+    final borderColor = missao.concluida
+        ? Colors.green
+        : const Color(0xFF4DA3FF);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: missao.concluida ? const Color(0xFFE8F5E9) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border(
+          bottom: BorderSide(color: borderColor, width: 6),
+          left: BorderSide(color: borderColor, width: 2),
+          right: BorderSide(color: borderColor, width: 2),
+          top: BorderSide(color: borderColor, width: 2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(missao.icone, style: const TextStyle(fontSize: 24)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      missao.titulo,
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text(
+                      missao.descricao,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              missao.concluida
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        '✓ Feito',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4DA3FF).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '+${missao.xpRecompensa} XP',
+                        style: const TextStyle(
+                          color: Color(0xFF4DA3FF),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: missao.progresso == 0 ? 0.02 : missao.progresso,
+              minHeight: 8,
+              backgroundColor: const Color(0xFFEEEEEE),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                missao.concluida ? Colors.green : const Color(0xFF4DA3FF),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            missao.concluida
+                ? 'Missão concluída!'
+                : '${missao.progressoAtual}/${missao.meta}',
+            style: GoogleFonts.poppins(
+              fontSize: 11,
+              color: missao.concluida ? Colors.green : Colors.grey,
+              fontWeight: missao.concluida
+                  ? FontWeight.bold
+                  : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ShimmerBox extends StatefulWidget {
+  final double width;
+  final double height;
+  final double radius;
+
+  const _ShimmerBox({
+    required this.width,
+    required this.height,
+    required this.radius,
+  });
+
+  @override
+  State<_ShimmerBox> createState() => _ShimmerBoxState();
+}
+
+class _ShimmerBoxState extends State<_ShimmerBox>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+    _animation = Tween<double>(
+      begin: 0.3,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _animation.value,
+          child: Container(
+            width: widget.width,
+            height: widget.height,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(widget.radius),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
