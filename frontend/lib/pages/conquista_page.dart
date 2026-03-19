@@ -23,12 +23,12 @@ class _ConquistasPageState extends State<ConquistasPage> {
 
   Future<void> _carregarConquistas() async {
     final auth = AuthProvider();
-    if (auth.id == null) {
+    if (auth.token == null) {
       setState(() => _carregando = false);
       return;
     }
 
-    final conquistas = await ApiService.buscarConquistas(auth.id!);
+    final conquistas = await ApiService.buscarConquistas(auth.token!);
     if (mounted) {
       setState(() {
         _conquistas = conquistas ?? [];

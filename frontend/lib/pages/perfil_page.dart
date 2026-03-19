@@ -27,8 +27,8 @@ class _PerfilPageState extends State<PerfilPage> {
 
   Future<void> _carregarBadges() async {
     final auth = AuthProvider();
-    if (auth.id == null) return;
-    final conquistas = await ApiService.buscarConquistas(auth.id!);
+    if (auth.token == null) return;
+    final conquistas = await ApiService.buscarConquistas(auth.token!);
     if (conquistas != null && mounted) {
       setState(() {
         _badgesDesbloqueadas = conquistas
@@ -41,8 +41,8 @@ class _PerfilPageState extends State<PerfilPage> {
 
   Future<void> _atualizarXp() async {
     final auth = AuthProvider();
-    if (auth.id == null) return;
-    final xpInfo = await ApiService.buscarXp(auth.id!);
+    if (auth.token == null) return;
+    final xpInfo = await ApiService.buscarXp(auth.token!);
     if (xpInfo != null && mounted) {
       auth.atualizarXp(
         xpInfo.nivel,

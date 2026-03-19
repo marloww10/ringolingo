@@ -58,9 +58,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _buscarMissoes() async {
-    final id = AuthProvider().id;
-    if (id == null) return;
-    final missoes = await ApiService.buscarMissoes(id);
+    final token = AuthProvider().token;
+    if (token == null) return;
+    final missoes = await ApiService.buscarMissoes(token);
     if (mounted) {
       if (missoes != null) {
         setState(() => _missoes = missoes);
@@ -72,18 +72,18 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _carregarDados() async {
     final auth = AuthProvider();
-    final id = auth.id;
+    final token = auth.token;
     final nivelAnterior = auth.nivel ?? 1;
     final streakAnterior = auth.streak ?? 0;
 
-    if (id == null) {
+    if (token == null) {
       setState(() => _carregando = false);
       return;
     }
 
     final resultados = await Future.wait([
-      ApiService.buscarStreak(id),
-      ApiService.buscarXp(id),
+      ApiService.buscarStreak(token),
+      ApiService.buscarXp(token),
     ]);
 
     final streak = resultados[0] as int;
@@ -197,7 +197,7 @@ class _HomePageState extends State<HomePage> {
                   Text(
                     'Olá, $nome!',
                     style: GoogleFonts.poppins(
-                      fontSize: 28,
+                      fontSize: 25,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -210,7 +210,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         child: Row(
                           children: [
-                            const Text('🔥', style: TextStyle(fontSize: 16)),
+                            const Text('🔥', style: TextStyle(fontSize: 18)),
                             const SizedBox(width: 4),
                             _carregando
                                 ? const SizedBox(
@@ -225,7 +225,7 @@ class _HomePageState extends State<HomePage> {
                                     '$_streak',
                                     style: GoogleFonts.poppins(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 14,
+                                      fontSize: 20,
                                     ),
                                   ),
                           ],

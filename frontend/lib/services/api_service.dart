@@ -23,10 +23,13 @@ class ApiService {
     }
   }
 
-  static Future<List<ConquistaModel>?> buscarConquistas(int usuarioId) async {
+  static Future<List<ConquistaModel>?> buscarConquistas(String token) async {
     try {
       final response = await http
-          .get(Uri.parse('$baseUrl/Conquista?usuarioId=$usuarioId'))
+          .get(
+            Uri.parse('$baseUrl/Conquista'),
+            headers: {'Authorization': 'Bearer $token'},
+          )
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
@@ -66,10 +69,13 @@ class ApiService {
     }
   }
 
-  static Future<List<MissaoModel>?> buscarMissoes(int usuarioId) async {
+  static Future<List<MissaoModel>?> buscarMissoes(String token) async {
     try {
       final response = await http
-          .get(Uri.parse('$baseUrl/Miss%C3%B5es?usuarioId=$usuarioId'))
+          .get(
+            Uri.parse('$baseUrl/Miss%C3%B5es'),
+            headers: {'Authorization': 'Bearer $token'},
+          )
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
@@ -195,10 +201,13 @@ class ApiService {
     }
   }
 
-  static Future<int> buscarStreak(int usuarioId) async {
+  static Future<int> buscarStreak(String token) async {
     try {
       final response = await http
-          .get(Uri.parse('$baseUrl/Usuario/Streak?usuarioId=$usuarioId'))
+          .get(
+            Uri.parse('$baseUrl/Usuario/Streak'),
+            headers: {'Authorization': 'Bearer $token'},
+          )
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
@@ -211,10 +220,13 @@ class ApiService {
     }
   }
 
-  static Future<XpInfo?> buscarXp(int usuarioId) async {
+  static Future<XpInfo?> buscarXp(String token) async {
     try {
       final response = await http
-          .get(Uri.parse('$baseUrl/Usuario/XP?usuarioId=$usuarioId'))
+          .get(
+            Uri.parse('$baseUrl/Usuario/XP'),
+            headers: {'Authorization': 'Bearer $token'},
+          )
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
