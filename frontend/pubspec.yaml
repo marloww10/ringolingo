@@ -93,6 +93,8 @@ flutter:
     - lib/assets/bandeiraBrasil.png
     - lib/assets/bandeiraFranca.png
     - lib/assets/bandeiraEspanha.png
+    - lib/assets/ringoEntrevistador.png
+    - lib/assets/ringoSaudacao.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:lottie/lottie.dart';
 import 'package:ringolingo/pages/cadastro_page.dart';
 import 'package:ringolingo/pages/login_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -22,7 +23,11 @@ class _InicioPageState extends State<InicioPage> {
             padding: EdgeInsetsGeometry.all(20),
             child: Column(
               children: [
-                SizedBox(height: 280),
+                Lottie.asset(
+                  'lib/assets/ringoSaudacao.json',
+                  width: 300,
+                  height: 300,
+                ),
                 Text(
                   "Seja bem vindo!",
                   style: Theme.of(context).textTheme.titleLarge,
