@@ -1,5 +1,7 @@
-
-
+using Microsoft.EntityFrameworkCore;
+using Ringolingo.Data;
+using Ringolingo.Models;
+using Ringolingo.Service.XpService;
 
 namespace Ringolingo.Service
 {
