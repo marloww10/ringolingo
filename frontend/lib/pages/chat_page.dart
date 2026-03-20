@@ -301,6 +301,7 @@ class _ChatPageState extends State<ChatPage> {
                       )
                     : ListView.builder(
                         controller: _scrollController,
+                        physics: const BouncingScrollPhysics(),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 10,
@@ -580,7 +581,6 @@ class _ChatPageState extends State<ChatPage> {
       ),
     );
   }
-
 
   Widget _campoMensagem() {
     return Container(

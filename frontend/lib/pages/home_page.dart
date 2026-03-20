@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,6 +28,8 @@ class _HomePageState extends State<HomePage> {
   bool _carregando = true;
   bool _erroMissoes = false;
   bool _erroRingos = false;
+  String? _mensagemFixada;
+  int _ultimoXpVerificado = -1;
 
   List<MissaoModel> _missoes = [];
   List<RingoModel> _ringos = [];
@@ -124,11 +127,86 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  String _saudacaoProgresso() {
-    if (_streak >= 7) return 'Incrível, $_streak dias seguidos! 🔥';
-    if (_streak >= 3) return '$_streak dias de sequência! 💪';
-    if (_xpDoNivel == 0 && _xpTotal == 0) return 'Que tal começar hoje? 😊';
-    return 'Continue assim! 😊';
+  String _obterSaudacaoProgresso() {
+    if (_mensagemFixada == null || _ultimoXpVerificado != _xpTotal) {
+      _mensagemFixada = _gerarNovaSaudacao();
+      _ultimoXpVerificado = _xpTotal; // Salva o XP atual para não trocar mais
+    }
+    return _mensagemFixada!;
+  }
+
+  String _gerarNovaSaudacao() {
+    final random = Random();
+    final progresso = _xpNecessario > 0 ? (_xpDoNivel / _xpNecessario) : 0.0;
+
+    if (_streak >= 30) {
+      final lendarias = [
+        '$_streak dias invicto! 👑',
+        'Voando no inglês! 🚀',
+        'Lenda do Ringo! 🔥',
+        '$_streak dias de foco! 🏆',
+        'Ofensiva brutal! 🤩',
+      ];
+      return lendarias[random.nextInt(lendarias.length)];
+    }
+
+    if (_streak >= 14) {
+      final fortes = [
+        '$_streak dias no ritmo! 🎯',
+        'Hábito formado! 🧠',
+        'Orgulho do Ringo! 🍎',
+        '$_streak dias seguidos! 👏',
+        'Firme e forte! 🔑',
+      ];
+      return fortes[random.nextInt(fortes.length)];
+    }
+
+    if (_streak >= 3) {
+      final iniciais = [
+        'Belo ritmo! 💪',
+        'Motor aquecido! 🚗',
+        'Boa ofensiva! ✨',
+        'Mantenha a ofensiva! 🔥',
+        '$_streak dias! Mandou bem. 🌱',
+      ];
+      return iniciais[random.nextInt(iniciais.length)];
+    }
+
+    if (progresso >= 0.8) {
+      final quaseLa = [
+        'Quase Nv. ${_nivel + 1}! ⚡',
+        'Nível novo chegando! 🏅',
+        'Falta pouco! 🏃‍♂️',
+        'Barra quase cheia! 🔋',
+        'Sprint final! 🏁',
+      ];
+      return quaseLa[random.nextInt(quaseLa.length)];
+    }
+
+    if (_xpDoNivel == 0 && _xpTotal == 0) {
+      final novato = ['Bem-vindo! 🎉', 'Vamos começar? 🗺️'];
+      return novato[random.nextInt(novato.length)];
+    } else if (_xpDoNivel == 0) {
+      final preguica = [
+        'Bora praticar? 🕒',
+        'Senti sua falta! 🥺',
+        '5 minutinhos hoje? 🚀',
+        'Foco na fluência! 🧠',
+        'Pratique agora! ⏳',
+      ];
+      return preguica[random.nextInt(preguica.length)];
+    }
+
+    final gerais = [
+      'Belo progresso! 😍',
+      'Continue assim! 🗣️',
+      'Ringo tá orgulhoso! 🍎',
+      'XP na conta! ✨',
+      'Mandando bem! 🎯',
+      'Belo vocabulário! 🧠',
+      'You got this! 👊',
+    ];
+    return gerais[random.nextInt(gerais.length)];
   }
 
   RingoModel? _proximoRingoADesbloquear() {
@@ -223,6 +301,7 @@ class _HomePageState extends State<HomePage> {
       },
       child: Scaffold(
         body: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
             child: Column(
@@ -328,7 +407,7 @@ class _HomePageState extends State<HomePage> {
                               Text(
                                 _carregando
                                     ? 'Carregando...'
-                                    : _saudacaoProgresso(),
+                                    : _obterSaudacaoProgresso(),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -432,6 +511,7 @@ class _HomePageState extends State<HomePage> {
                           padding: const EdgeInsets.only(bottom: 20),
                           scrollDirection: Axis.horizontal,
                           itemCount: _ringos.isEmpty ? 3 : _ringos.length,
+                          physics: const BouncingScrollPhysics(),
                           itemBuilder: (context, index) {
                             if (_ringos.isEmpty) {
                               return _skeletonRingo();
