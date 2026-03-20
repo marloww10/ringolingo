@@ -16,27 +16,10 @@ class PerfilPage extends StatefulWidget {
 }
 
 class _PerfilPageState extends State<PerfilPage> {
-  List<String> _badgesDesbloqueadas = [];
-
   @override
   void initState() {
     super.initState();
     _atualizarXp();
-    _carregarBadges();
-  }
-
-  Future<void> _carregarBadges() async {
-    final auth = AuthProvider();
-    if (auth.token == null) return;
-    final conquistas = await ApiService.buscarConquistas(auth.token!);
-    if (conquistas != null && mounted) {
-      setState(() {
-        _badgesDesbloqueadas = conquistas
-            .where((c) => c.desbloqueada)
-            .map((c) => c.nome)
-            .toList();
-      });
-    }
   }
 
   Future<void> _atualizarXp() async {
@@ -106,7 +89,6 @@ class _PerfilPageState extends State<PerfilPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // ── HEADER ──
             Container(
               width: double.infinity,
               decoration: const BoxDecoration(
@@ -182,52 +164,6 @@ class _PerfilPageState extends State<PerfilPage> {
                         ],
                       ),
                     ),
-                    if (_badgesDesbloqueadas.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _badgesDesbloqueadas.map((nome) {
-                          return Tooltip(
-                            message: nome,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.5),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Text(
-                                    '🏆',
-                                    style: TextStyle(fontSize: 14),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    nome,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 6),
-                    ],
                   ],
                 ),
               ),
@@ -237,7 +173,6 @@ class _PerfilPageState extends State<PerfilPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // XP Total
                   _itemCard(
                     icon: Icons.star_rounded,
                     label: "XP Total",
@@ -270,7 +205,6 @@ class _PerfilPageState extends State<PerfilPage> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Idiomas
                   GestureDetector(
                     onTap: () async {
                       await AnalyticsService.perfilIdiomas();
@@ -293,7 +227,6 @@ class _PerfilPageState extends State<PerfilPage> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Quem somos
                   GestureDetector(
                     onTap: () async {
                       await AnalyticsService.perfilQuemSomos();
@@ -316,23 +249,61 @@ class _PerfilPageState extends State<PerfilPage> {
                   ),
 
                   const SizedBox(height: 30),
-
-                  // Botão Sair
                   SizedBox(
                     width: double.infinity,
                     height: 60,
                     child: Material(
                       child: InkWell(
                         borderRadius: BorderRadius.circular(12),
-                        onTap: () async {
-                          AnalyticsService.perfilLogout();
-                          AuthProvider().encerrarSessao();
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const InicioPage(),
-                            ),
-                            (route) => false,
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext dialogContext) {
+                              return AlertDialog(
+                                title: const Text("Sair do aplicativo"),
+                                content: const Text(
+                                  "Tem certeza de que deseja sair da sua conta?",
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.pop(dialogContext);
+                                    },
+                                    child: const Text(
+                                      "Não, continuar",
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      Navigator.pop(dialogContext);
+                                      AnalyticsService.perfilLogout();
+                                      AuthProvider().encerrarSessao();
+
+                                      if (context.mounted) {
+                                        Navigator.pushAndRemoveUntil(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => const InicioPage(),
+                                          ),
+                                          (route) => false,
+                                        );
+                                      }
+                                    },
+                                    child: const Text(
+                                      "Sim, quero sair",
+                                      style: TextStyle(
+                                        color: Colors.redAccent,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           );
                         },
                         child: Ink(
