@@ -8,6 +8,7 @@
       "version": "1.0.0+1",
       "dependencies": [
         "app_links",
+        "confetti",
         "cupertino_icons",
         "firebase_analytics",
         "firebase_core",
@@ -61,6 +62,14 @@
         "stack_trace",
         "stream_channel",
         "test_api",
+        "vector_math"
+      ]
+    },
+    {
+      "name": "confetti",
+      "version": "0.8.0",
+      "dependencies": [
+        "flutter",
         "vector_math"
       ]
     },

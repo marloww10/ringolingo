@@ -115,6 +115,7 @@ class _ConquistasPageState extends State<ConquistasPage> {
                           ),
                         )
                       : ListView.builder(
+                          physics: BouncingScrollPhysics(),
                           padding: const EdgeInsets.all(16),
                           itemCount: _conquistas.length,
                           itemBuilder: (context, index) {
