@@ -1,12 +1,15 @@
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
 
-COPY *.csproj ./
-RUN dotnet restore
+# Copia apenas o projeto e restaura
+COPY Ringolingo.csproj ./
+RUN dotnet restore Ringolingo.csproj
 
+# Copia o restante e publica ESPECIFICANDO o projeto
 COPY . ./
-RUN dotnet publish -c Release -o out
+RUN dotnet publish Ringolingo.csproj -c Release -o out
 
+# Estágio de Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=build /app/out .
