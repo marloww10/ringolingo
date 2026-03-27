@@ -304,7 +304,11 @@ CONVERSATION RULES:
                 );
 
                 modelBuilder.Entity<Conquista>().HasData(
-                    new Conquista {Id = 1, Titulo= "Mensageiro", Descricao= "Envie 100 mensagens com qualquer um dos ringos", xpGanhado = 200}
+                    new Conquista { Id = 1, Titulo = "Mensageiro",   Descricao = "Envie 100 mensagens para suas personas",   xpGanhado = 100 },
+                    new Conquista { Id = 2, Titulo = "Acumulador",   Descricao = "Acumule 5.000 XP no total",               xpGanhado = 300 },
+                    new Conquista { Id = 3, Titulo = "Veterano",     Descricao = "Use o app por 30 dias consecutivos",       xpGanhado = 500 },
+                    new Conquista { Id = 4, Titulo = "Evoluído",     Descricao = "Chegue ao nível 20",                      xpGanhado = 400 },
+                    new Conquista { Id = 5, Titulo = "Colecionador", Descricao = "Converse com 5 personas diferentes",      xpGanhado = 250 }
                 );
 
 

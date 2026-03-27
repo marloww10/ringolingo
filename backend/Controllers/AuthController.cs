@@ -1,8 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Ringolingo.Data;
-using Ringolingo.Models;
 using Ringolingo.Models.Dto;
 using Ringolingo.Service.AuthService;
 
@@ -38,7 +35,7 @@ namespace Ringolingo.Controllers
 
         [Authorize(AuthenticationSchemes = "Supabase")]
         [HttpGet("loginSocial")]
-        public async Task<ActionResult> LoginSocial(AppDbContext context)
+        public async Task<ActionResult> LoginSocial()
         {
             var email = User.FindFirst("email")?.Value;
             var supabaseId = User.FindFirst("sub")?.Value;
@@ -46,34 +43,8 @@ namespace Ringolingo.Controllers
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(supabaseId))
                 return Unauthorized("Token inválido ou incompleto.");
 
-           
-            var usuario = await context.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
-
-            if (usuario == null)
-            {
-                
-                usuario = new Usuario
-                {
-                    Email = email,
-                    Nome = email.Split('@')[0],
-                    SupabaseId = supabaseId,
-                    
-                };
-
-                context.Usuarios.Add(usuario);
-                await context.SaveChangesAsync();
-            }
-
-           
-            return Ok(new
-            {
-                usuario.Id,
-                usuario.Email,
-                usuario.Nome,
-                usuario.Nivel,
-                usuario.XpTotal,
-                usuario.Premium
-            });
+            var resposta = await _authService.LoginSocial(email, supabaseId);
+            return Ok(resposta);
         }
 
     }

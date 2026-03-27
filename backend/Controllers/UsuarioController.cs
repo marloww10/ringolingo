@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Ringolingo.Data;
 using Ringolingo.Models;
-using Ringolingo.Models.Dto;
 using Ringolingo.Service.XpService;
 
 namespace Ringolingo.Controllers
@@ -23,12 +22,23 @@ namespace Ringolingo.Controllers
 
         [Authorize]
         [HttpGet]
-        public ActionResult<Response<string>> GetUsuarioToken()
+        public ActionResult<Response<int>> GetUsuarioToken()
         {
-            Response<string> response = new Response<string>();
-            response.Mensagem = "Acessado";
-            return Ok(response);
+            var userIdClaim = User.FindFirst("UserId");
+            if (userIdClaim == null)
+            {
+                return Unauthorized(new Response<int> { Mensagem = "Token sem dados" });
+            }
+
+            int usuarioId = int.Parse(userIdClaim.Value);
+
+            return Ok(new Response<int>
+            {
+                Mensagem = "Usuário autenticado",
+                Dados = usuarioId
+            });
         }
+
 
         [Authorize]
         [HttpGet("Streak")]
@@ -57,22 +67,6 @@ namespace Ringolingo.Controllers
 
             var xpInfo = await _xpService.ObterXpAtualAsync(usuarioId);
             return Ok(xpInfo);
-        }
-
-
-        [HttpPut("Foto")]
-        public async Task<IActionResult> AtualizarFoto(int usuarioId, [FromBody] AtualizarFotoDto atualizarFotoDto)
-        {
-            var usuario = await _context.Usuarios.FindAsync(usuarioId);
-            if (usuario == null)
-                return NotFound("Usuário não encontrado");
-
-            usuario.FotoUrl = atualizarFotoDto.FotoUrl;
-
-            _context.Usuarios.Update(usuario);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { usuario.Id, usuario.Nome, usuario.FotoUrl });
         }
     }
 }

@@ -37,7 +37,7 @@ namespace Ringolingo
             builder.Services.AddHttpClient<IApiService, ApiService>();
 
 
-            builder.Services.AddDbContext<AppDbContext>(option => option.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer")));
+            builder.Services.AddDbContext<AppDbContext>(option => option.UseNpgsql(builder.Configuration.GetConnectionString("PostgresSql")));
 
 
             builder.Services.AddSwaggerGen(options =>
@@ -84,6 +84,8 @@ namespace Ringolingo
             });
 
 
+            
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
             var app = builder.Build();
 
