@@ -26,7 +26,7 @@ namespace Ringolingo.Service.AuthService
 
             try
             {
-                if (VerificarUsuarioExistente(usuarioCadastrar) == true)
+                if (await VerificarUsuarioExistente(usuarioCadastrar) == true)
                 {
                     resposta.Dados = null;
                     resposta.Mensagem = "Nome/email já existentes";
@@ -63,13 +63,13 @@ namespace Ringolingo.Service.AuthService
             }
         }
 
-        public async Task<Response<RespostaLogin>> LoginUsuario (UsuarioLogin usuarioLogin)
+        public async Task<Response<RespostaLogin>> LoginUsuario(UsuarioLogin usuarioLogin)
         {
             Response<RespostaLogin> resposta = new Response<RespostaLogin>();
 
             try
             {
-                var usuario = await _context.Usuarios.FirstOrDefaultAsync(x=> x.Email ==  usuarioLogin.Email);
+                var usuario = await _context.Usuarios.FirstOrDefaultAsync(x => x.Email == usuarioLogin.Email);
 
                 if (usuario == null)
                 {
@@ -81,7 +81,6 @@ namespace Ringolingo.Service.AuthService
 
                 if (!_senhaService.VerificarSenhaHash(usuarioLogin.Senha, usuario.SenhaHash, usuario.SenhaSalt))
                 {
-                    
                     resposta.Mensagem = "Credencias inválidadas";
                     resposta.status = false;
                     return resposta;
@@ -89,14 +88,7 @@ namespace Ringolingo.Service.AuthService
 
                 var token = _senhaService.CriarToken(usuario);
 
-                var sessao = new Sessao
-                {
-                    UsuarioId = usuario.Id,
-                    IniciadaEm = DateTime.Now
-                };
-
-                _context.Sessaos.Add(sessao);
-                await _context.SaveChangesAsync();
+                // ← Bloco da sessão removido daqui
 
                 var hoje = DateTime.Today;
                 var amanha = hoje.AddDays(1);
@@ -106,7 +98,6 @@ namespace Ringolingo.Service.AuthService
                                 && h.Motivo == "Login diário"
                                 && h.Data >= hoje
                                 && h.Data < amanha);
-
 
                 if (!jaGanhouHoje)
                     await _xpService.GanharXpPorLoginAsync(usuario.Id);
@@ -121,15 +112,10 @@ namespace Ringolingo.Service.AuthService
                     XpDoNivel = usuario.XpDoNivel,
                     Token = token,
                     XPTotal = usuario.XpTotal
-                    
                 };
                 resposta.Mensagem = "Usuario logado!";
                 resposta.status = true;
                 return resposta;
-
-                
-
-
             }
             catch (Exception ex)
             {
@@ -139,9 +125,9 @@ namespace Ringolingo.Service.AuthService
             }
         }
 
-        public bool VerificarUsuarioExistente (UsuarioCadastrar usuarioCadastrar)
+        public async Task<bool> VerificarUsuarioExistente (UsuarioCadastrar usuarioCadastrar)
         {
-            var usuario = _context.Usuarios.FirstOrDefault(x=> x.Nome == usuarioCadastrar.Nome || x.Email == usuarioCadastrar.Email);
+            var usuario = await _context.Usuarios.FirstOrDefaultAsync(x=> x.Nome == usuarioCadastrar.Nome || x.Email == usuarioCadastrar.Email);
 
             if (usuario == null)
             {
@@ -154,6 +140,63 @@ namespace Ringolingo.Service.AuthService
         }
 
 
+        public async Task<Response<RespostaLogin>> LoginSocial(string email, string supabaseId)
+{
+    Response<RespostaLogin> resposta = new Response<RespostaLogin>();
+
+    try
+    {
+        var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
+
+        if (usuario == null)
+        {
+            usuario = new Usuario
+            {
+                Email = email,
+                Nome = email.Split('@')[0],
+                SupabaseId = supabaseId,
+            };
+
+            _context.Usuarios.Add(usuario);
+            await _context.SaveChangesAsync();
+        }
+
+        var token = _senhaService.CriarToken(usuario);
+
+        var hoje = DateTime.Today;
+        var amanha = hoje.AddDays(1);
+
+        var jaGanhouHoje = await _context.HistoricoXps
+            .AnyAsync(h => h.UsuarioId == usuario.Id
+                        && h.Motivo == "Login diário"
+                        && h.Data >= hoje
+                        && h.Data < amanha);
+
+        if (!jaGanhouHoje)
+            await _xpService.GanharXpPorLoginAsync(usuario.Id);
+
+        await _xpService.VerificarSequenciaDiasAsync(usuario.Id);
+
+        resposta.Dados = new RespostaLogin
+        {
+            Id = usuario.Id,
+            Nome = usuario.Nome,
+            Nivel = usuario.Nivel,
+            XpDoNivel = usuario.XpDoNivel,
+            Token = token,
+            XPTotal = usuario.XpTotal
+        };
+        resposta.Mensagem = "Usuario logado!";
+        resposta.status = true;
+        return resposta;
+    }
+    catch (Exception ex)
+    {
+        resposta.Mensagem = ex.Message;
+        resposta.status = false;
+        return resposta;
+    }
+}
         
     }
 }
