@@ -1,22 +1,19 @@
-# Estágio de Build
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+# Estágio de Build (SDK do .NET 10)
+FROM mcr.microsoft.com/dotnet/sdk:10.0-preview AS build
 WORKDIR /app
 
-# Copia os arquivos de projeto e restaura as dependências
+# Copia o projeto e restaura
 COPY *.csproj ./
 RUN dotnet restore
 
-# Copia o restante dos arquivos e compila
+# Copia tudo e publica
 COPY . ./
 RUN dotnet publish -c Release -o out
 
-# Estágio de Runtime (Execução)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+# Estágio de Runtime (ASP.NET 10)
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-preview
 WORKDIR /app
 COPY --from=build /app/out .
 
-# Expõe a porta que o .NET usa por padrão
 EXPOSE 8080
-
-# Comando para iniciar a aplicação
 ENTRYPOINT ["dotnet", "Ringolingo.dll"]
