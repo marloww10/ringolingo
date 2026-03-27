@@ -269,7 +269,7 @@ class _ChatPageState extends State<ChatPage> {
           children: [
             CircleAvatar(
               backgroundImage: NetworkImage(
-                'http://10.0.2.2:5269${widget.ringo.imagemUrl}',
+                'https://ringolingo-production.up.railway.app${widget.ringo.imagemUrl}',
               ),
               radius: 20,
             ),

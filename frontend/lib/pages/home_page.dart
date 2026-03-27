@@ -24,7 +24,7 @@ class _HomePageState extends State<HomePage> {
   int _streak = 0;
   int _nivel = 1;
   int _xpDoNivel = 0;
-  int _xpNecessario = 500;
+  int _xpNecessario = 200;
   int _xpTotal = 0;
   bool _carregando = true;
   bool _erroMissoes = false;
@@ -621,7 +621,7 @@ class _HomePageState extends State<HomePage> {
                                         Opacity(
                                           opacity: desbloqueado ? 1.0 : 0.4,
                                           child: Image.network(
-                                            'http://10.0.2.2:5269${ringo.imagemUrl}',
+                                            'https://ringolingo-production.up.railway.app${ringo.imagemUrl}',
                                             height: 100,
                                             errorBuilder:
                                                 (context, error, stackTrace) =>
