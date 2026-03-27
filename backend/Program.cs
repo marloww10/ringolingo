@@ -79,17 +79,19 @@ namespace Ringolingo
                     ValidateIssuer = false
                 };
             })
-            .AddJwtBearer("Supabase", options =>
-            {
-                options.Authority = "https://reorkwznacmxtfsvpmfv.supabase.co/auth/v1";
-                options.TokenValidationParameters = new TokenValidationParameters
+                .AddJwtBearer("Supabase", options =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = false,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true
-                };
-            });
+                    // ALTERE ESTA LINHA:
+                    options.Authority = "https://bdzfsdduaqngcivxpplj.supabase.co/auth/v1"; 
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = "https://bdzfsdduaqngcivxpplj.supabase.co/auth/v1", // Adicione isso por segurança
+                        ValidateAudience = false,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true
+                    };
+                });
 
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 

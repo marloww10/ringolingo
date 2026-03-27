@@ -12,9 +12,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AuthProvider().carregarSessao();
   await Supabase.initialize(
-    url: 'https://reorkwznacmxtfsvpmfv.supabase.co',
+    url: 'https://bdzfsdduaqngcivxpplj.supabase.co',
     anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlb3Jrd3puYWNteHRmc3ZwbWZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxOTYwODIsImV4cCI6MjA4Nzc3MjA4Mn0.52IWl7vS7Tm0aoCzbjhdROzRPZBD9cGFAZDZiK8Ppkg',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkemZzZGR1YXFuZ2NpdnhwcGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MTQzMjIsImV4cCI6MjA5MDE5MDMyMn0.jPNVG_9tDcthrEw3okcsv6w9J3ljSfcLKbCVdwudr3Y',
   );
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
