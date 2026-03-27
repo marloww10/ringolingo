@@ -37,9 +37,11 @@ namespace Ringolingo
 
             builder.Services.AddHttpClient<IApiService, ApiService>();
 
-
-            var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
+var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
                        ?? builder.Configuration.GetConnectionString("PostgresSql");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddDbContext<AppDbContext>(option => 
     option.UseNpgsql(connectionString));
@@ -94,9 +96,10 @@ builder.Services.AddDbContext<AppDbContext>(option =>
 
             var app = builder.Build();
 
-            using (var scope = app.Services.CreateScope()) {
+using (var scope = app.Services.CreateScope())
+{
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    db.Database.EnsureCreated(); // Isso cria as tabelas sem precisar de migrations
 }
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
