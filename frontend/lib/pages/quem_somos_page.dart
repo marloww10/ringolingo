@@ -62,7 +62,7 @@ class QuemSomosPage extends StatelessWidget {
               corFundo: const Color(0xFFEEF4FF),
               titulo: "Como tudo começou",
               texto:
-                  "Somos um grupo de estudantes do ensino médio técnico em Desenvolvimento de Sistemas da rede FIRJAN SENAI SESI de Petrópolis, mais especificamente a lendária Turma 3º Info A.\n\nO RingoLingo nasceu oficialmente como projeto do Projeto Integrador. Mas, cá entre nós, a ideia já estava borbulhando muito antes disso. Quando surgiu a oportunidade, a resposta foi na hora: \"é agora ou nunca\", e aqui estamos.\n\nNão somos uma big tech, não temos escritório com puffs coloridos nem café grátis. Somos um grupo de adolescentes que achou que dar uma aula de inglês pra uma IA e deixar ela conversar com as pessoas era boa demais pra ficar só no papel.",
+                  "Somos um grupo de estudantes do ensino médio técnico em Desenvolvimento de Sistemas da rede FIRJAN SENAI SESI de Petrópolis, mais especificamente a lendária Turma 3º Info A.\n\nO RingoLingo nasceu oficialmente como projeto do Projeto Integrador. Mas, cá entre nós, a ideia já estava borbulhando muito antes disso. Quando surgiu a oportunidade, a resposta foi na hora: \"é agora ou nunca\", e aqui estamos.\n\nNão somos uma big tech, não temos escritório com puffs coloridos nem café grátis. Somos um grupo de adolescentes que achou que dar uma aula de inglês pra uma IA e deixar ela conversar com as pessoas era boa demais pra ficar só no papel.\n\nDesenvolvido por Marlon Franco, Caio Alonso, Otavio Augusto e Pedro Ryan.",
             ),
 
             _divider(),
