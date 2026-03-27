@@ -8,6 +8,9 @@ import 'package:ringolingo/providers/auth_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/analytics_service.dart';
 
+// Chave global para navegar sem depender do context do main
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AuthProvider().carregarSessao();
@@ -17,6 +20,17 @@ void main() async {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkemZzZGR1YXFuZ2NpdnhwcGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MTQzMjIsImV4cCI6MjA5MDE5MDMyMn0.jPNVG_9tDcthrEw3okcsv6w9J3ljSfcLKbCVdwudr3Y',
   );
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Escutando mudanças de autenticação
+  Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    final session = data.session;
+    if (session != null) {
+      navigatorKey.currentState?.pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    }
+  });
+
   runApp(const MyApp());
 }
 
@@ -26,6 +40,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey, // Atribuindo a chave aqui
       navigatorObservers: [AnalyticsService.observer],
       debugShowCheckedModeBanner: false,
       title: 'RingoLingo',
@@ -59,10 +74,8 @@ class MyApp extends StatelessWidget {
             borderSide: BorderSide(color: Color(0xFF4DA3FF), width: 2),
           ),
         ),
-
         scaffoldBackgroundColor: const Color(0xFFF7FAFF),
-
-        colorScheme: .fromSeed(seedColor: const Color(0xFF4DA3FF)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF4DA3FF)),
       ),
       home: AuthProvider().estaLogado ? const HomePage() : const InicioPage(),
     );

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Ringolingo.Models.Dto;
 using Ringolingo.Service.AuthService;
+using System.Security.Claims;
 
 namespace Ringolingo.Controllers
 {
@@ -32,20 +33,23 @@ namespace Ringolingo.Controllers
             return Ok(resposta);
         }
 
-
         [Authorize(AuthenticationSchemes = "Supabase")]
         [HttpGet("loginSocial")]
         public async Task<ActionResult> LoginSocial()
         {
-            var email = User.FindFirst("email")?.Value;
-            var supabaseId = User.FindFirst("sub")?.Value;
+            // Captura as informações vindas do token do Supabase/Google
+            var email = User.FindFirst(ClaimTypes.Email)?.Value ?? User.FindFirst("email")?.Value;
+            var supabaseId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst("sub")?.Value;
+            
+            // CORREÇÃO: Captura o nome real do usuário para evitar o 'null'
+            var nome = User.FindFirst("full_name")?.Value ?? User.FindFirst("name")?.Value;
 
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(supabaseId))
                 return Unauthorized("Token inválido ou incompleto.");
 
-            var resposta = await _authService.LoginSocial(email, supabaseId);
+            // CORREÇÃO: Passa o parâmetro 'nome' para o método atualizado do AuthService
+            var resposta = await _authService.LoginSocial(email, supabaseId, nome);
             return Ok(resposta);
         }
-
     }
 }

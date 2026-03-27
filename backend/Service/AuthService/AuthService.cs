@@ -15,10 +15,10 @@ namespace Ringolingo.Service.AuthService
 
         public AuthService(AppDbContext dbContext, ISenhaService senhaService, IXpService xpService)
         {
-            _context = dbContext; _senhaService = senhaService; _xpService = xpService;
+            _context = dbContext; 
+            _senhaService = senhaService; 
+            _xpService = xpService;
         }
-
-
 
         public async Task<Response<UsuarioCadastrar>> CadastroUsuario (UsuarioCadastrar usuarioCadastrar)
         {
@@ -88,8 +88,6 @@ namespace Ringolingo.Service.AuthService
 
                 var token = _senhaService.CriarToken(usuario);
 
-                // ← Bloco da sessão removido daqui
-
                 var hoje = DateTime.Today;
                 var amanha = hoje.AddDays(1);
 
@@ -139,64 +137,77 @@ namespace Ringolingo.Service.AuthService
             }
         }
 
-
-        public async Task<Response<RespostaLogin>> LoginSocial(string email, string supabaseId)
-{
-    Response<RespostaLogin> resposta = new Response<RespostaLogin>();
-
-    try
-    {
-        var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == email);
-
-        if (usuario == null)
+        // CORREÇÃO: Método atualizado para receber o nome e evitar o valor null no Postgres do Railway
+        public async Task<Response<RespostaLogin>> LoginSocial(string email, string supabaseId, string nome)
         {
-            usuario = new Usuario
+            Response<RespostaLogin> resposta = new Response<RespostaLogin>();
+
+            try
             {
-                Email = email,
-                Nome = email.Split('@')[0],
-                SupabaseId = supabaseId,
-            };
+                // Busca o usuário no banco do Railway
+                var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.SupabaseId == supabaseId || u.Email == email);
 
-            _context.Usuarios.Add(usuario);
-            await _context.SaveChangesAsync();
+                if (usuario == null)
+                {
+                    // Se não existe, cria o registro com os dados do Google
+                    usuario = new Usuario
+                    {
+                        Email = email,
+                        Nome = nome ?? email.Split('@')[0], // Prioriza o nome real para evitar o 'null'
+                        SupabaseId = supabaseId,
+                        XpTotal = 0,
+                        Nivel = 1,
+                        XpDoNivel = 0,
+                        // Inicializa campos de senha como vazios para o Postgres aceitar
+                        SenhaHash = Array.Empty<byte>(),
+                        SenhaSalt = Array.Empty<byte>()
+                    };
+
+                    _context.Usuarios.Add(usuario);
+                    await _context.SaveChangesAsync();
+                }
+                else if (string.IsNullOrEmpty(usuario.SupabaseId))
+                {
+                    // Vincula o SupabaseId se ele ainda não estiver preenchido
+                    usuario.SupabaseId = supabaseId;
+                    await _context.SaveChangesAsync();
+                }
+
+                var token = _senhaService.CriarToken(usuario);
+
+                var hoje = DateTime.Today;
+                var amanha = hoje.AddDays(1);
+
+                var jaGanhouHoje = await _context.HistoricoXps
+                    .AnyAsync(h => h.UsuarioId == usuario.Id
+                                && h.Motivo == "Login diário"
+                                && h.Data >= hoje
+                                && h.Data < amanha);
+
+                if (!jaGanhouHoje)
+                    await _xpService.GanharXpPorLoginAsync(usuario.Id);
+
+                await _xpService.VerificarSequenciaDiasAsync(usuario.Id);
+
+                resposta.Dados = new RespostaLogin
+                {
+                    Id = usuario.Id,
+                    Nome = usuario.Nome,
+                    Nivel = usuario.Nivel,
+                    XpDoNivel = usuario.XpDoNivel,
+                    Token = token,
+                    XPTotal = usuario.XpTotal
+                };
+                resposta.Mensagem = "Usuario logado!";
+                resposta.status = true;
+                return resposta;
+            }
+            catch (Exception ex)
+            {
+                resposta.Mensagem = ex.Message;
+                resposta.status = false;
+                return resposta;
+            }
         }
-
-        var token = _senhaService.CriarToken(usuario);
-
-        var hoje = DateTime.Today;
-        var amanha = hoje.AddDays(1);
-
-        var jaGanhouHoje = await _context.HistoricoXps
-            .AnyAsync(h => h.UsuarioId == usuario.Id
-                        && h.Motivo == "Login diário"
-                        && h.Data >= hoje
-                        && h.Data < amanha);
-
-        if (!jaGanhouHoje)
-            await _xpService.GanharXpPorLoginAsync(usuario.Id);
-
-        await _xpService.VerificarSequenciaDiasAsync(usuario.Id);
-
-        resposta.Dados = new RespostaLogin
-        {
-            Id = usuario.Id,
-            Nome = usuario.Nome,
-            Nivel = usuario.Nivel,
-            XpDoNivel = usuario.XpDoNivel,
-            Token = token,
-            XPTotal = usuario.XpTotal
-        };
-        resposta.Mensagem = "Usuario logado!";
-        resposta.status = true;
-        return resposta;
-    }
-    catch (Exception ex)
-    {
-        resposta.Mensagem = ex.Message;
-        resposta.status = false;
-        return resposta;
-    }
-}
-        
     }
 }
