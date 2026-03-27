@@ -37,7 +37,11 @@ namespace Ringolingo
             builder.Services.AddHttpClient<IApiService, ApiService>();
 
 
-            builder.Services.AddDbContext<AppDbContext>(option => option.UseNpgsql(builder.Configuration.GetConnectionString("PostgresSql")));
+            var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
+                       ?? builder.Configuration.GetConnectionString("PostgresSql");
+
+builder.Services.AddDbContext<AppDbContext>(option => 
+    option.UseNpgsql(connectionString));
 
 
             builder.Services.AddSwaggerGen(options =>

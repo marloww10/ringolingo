@@ -1,0 +1,22 @@
+# Estágio de Build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /app
+
+# Copia os arquivos de projeto e restaura as dependências
+COPY *.csproj ./
+RUN dotnet restore
+
+# Copia o restante dos arquivos e compila
+COPY . ./
+RUN dotnet publish -c Release -o out
+
+# Estágio de Runtime (Execução)
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+COPY --from=build /app/out .
+
+# Expõe a porta que o .NET usa por padrão
+EXPOSE 8080
+
+# Comando para iniciar a aplicação
+ENTRYPOINT ["dotnet", "Ringolingo.dll"]
