@@ -5,7 +5,7 @@ import 'package:ringolingo/models/missao_model.dart';
 import 'package:ringolingo/models/ringo_model.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://10.0.2.2:5269';
+  static const String baseUrl = "https://ringolingo-production.up.railway.app";
 
   static Future<List<RingoModel>?> buscarPersonas() async {
     try {
@@ -54,9 +54,7 @@ class ApiService {
       final response = await http
           .get(
             uri,
-            headers: {
-              if (token != null) 'Authorization': 'Bearer $token',
-            },
+            headers: {if (token != null) 'Authorization': 'Bearer $token'},
           )
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {

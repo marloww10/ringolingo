@@ -1,3 +1,4 @@
+# Estágio de Build (SDK 9.0)
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
 
@@ -5,14 +6,19 @@ WORKDIR /app
 COPY Ringolingo.csproj ./
 RUN dotnet restore Ringolingo.csproj
 
-# Copia o restante e publica ESPECIFICANDO o projeto
+# Copia o restante (incluindo a pasta wwwroot) e publica
 COPY . ./
 RUN dotnet publish Ringolingo.csproj -c Release -o out
 
-# Estágio de Runtime
+# Estágio de Runtime (ASP.NET 9.0)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
+
+# 1. Copia os arquivos binários compilados (o motor do app)
 COPY --from=build /app/out .
+
+# 2. COPIA A PASTA DE IMAGENS (Fundamental para o Ringo aparecer!)
+COPY --from=build /app/wwwroot ./wwwroot 
 
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "Ringolingo.dll"]

@@ -117,6 +117,7 @@ namespace Ringolingo
             app.UseAuthorization();
             app.UseStaticFiles();
             app.MapControllers();
+            app.UseStaticFiles();
 
             app.Run();
         }
