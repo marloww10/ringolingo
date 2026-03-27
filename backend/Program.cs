@@ -10,6 +10,7 @@ using Ringolingo.Service.SenhaService;
 using Ringolingo.Service.XpService;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
+using Microsoft.OpenApi.Models;
 
 namespace Ringolingo
 {
