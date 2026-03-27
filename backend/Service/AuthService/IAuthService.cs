@@ -7,6 +7,7 @@ namespace Ringolingo.Service.AuthService
     {
         Task<Response<UsuarioCadastrar>> CadastroUsuario(UsuarioCadastrar usuarioCadastrar);
         Task<Response<RespostaLogin>> LoginUsuario(UsuarioLogin usuarioLogin);
-        Task<Response<RespostaLogin>> LoginSocial(string email, string supabaseId);
+        // ADICIONADO: O parâmetro 'nome' para bater com a implementação do AuthService
+        Task<Response<RespostaLogin>> LoginSocial(string email, string supabaseId, string nome);
     }
 }
