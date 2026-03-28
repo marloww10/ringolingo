@@ -327,7 +327,7 @@ class _ChatPageState extends State<ChatPage> {
           // Animação +10 XP
           if (_mostrarXp)
             Positioned(
-              bottom: 80,
+              bottom: 30,
               left: 0,
               right: 0,
               child: TweenAnimationBuilder<double>(

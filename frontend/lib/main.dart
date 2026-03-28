@@ -51,7 +51,7 @@ void main() async {
 
         if (dados != null) {
           await AnalyticsService.loginSucesso();
-          AuthProvider().salvarSessao(
+          await AuthProvider().salvarSessao(
             token: dados['token'],
             nome: dados['nome'],
             id: dados['id'] as int,

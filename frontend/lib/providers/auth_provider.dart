@@ -26,21 +26,21 @@ class AuthProvider {
   String? get fotoUrl => _fotoUrl;
   bool get estaLogado => _token != null;
 
-  void salvarSessao({
+  Future<void> salvarSessao({
     required String token,
     required String nome,
     required int id,
     required int nivel,
     required int xpTotal,
     required int xpDoNivel,
-  }) {
+  }) async {
     _token = token;
     _nomeUsuario = nome;
     _id = id;
     _nivel = nivel;
     _xpTotal = xpTotal;
     _xpDoNivel = xpDoNivel;
-    _persistir();
+    await _persistir();
   }
 
   void atualizarXp(

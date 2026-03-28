@@ -73,6 +73,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     if (carregando) return const TeladecarregamentoPage();
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(centerTitle: true, title: const Text("Login")),
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 20),
