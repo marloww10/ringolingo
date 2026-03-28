@@ -277,7 +277,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final nome = AuthProvider().nomeUsuario ?? 'Usuário';
+    final nomeCompleto = AuthProvider().nomeUsuario ?? 'Usuário';
+
+    // Lógica para pegar a primeira palavra e formatar (Ex: "MARLON FRANCO" vira "Marlon")
+    final primeiroNome = nomeCompleto.split(' ').first;
+    final nomeFormatado = primeiroNome.isNotEmpty
+        ? primeiroNome[0].toUpperCase() +
+              primeiroNome.substring(1).toLowerCase()
+        : "Usuário";
     final progresso = _xpNecessario > 0
         ? (_xpDoNivel / _xpNecessario).clamp(0.0, 1.0)
         : 0.0;
@@ -339,11 +346,16 @@ class _HomePageState extends State<HomePage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Olá, $nome!',
-                          style: GoogleFonts.poppins(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,
+                        Flexible(
+                          child: Text(
+                            'Olá, $nomeFormatado!',
+                            style: GoogleFonts.poppins(
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow
+                                .ellipsis,
+                            maxLines: 1,
                           ),
                         ),
                         Row(

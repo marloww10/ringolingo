@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:ringolingo/firebase_options.dart';
 import 'package:ringolingo/pages/home_page.dart';
 import 'package:ringolingo/pages/inicio_page.dart';
@@ -8,7 +11,6 @@ import 'package:ringolingo/providers/auth_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/analytics_service.dart';
 
-// Chave global para navegar sem depender do context do main
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
@@ -21,13 +23,53 @@ void main() async {
   );
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Escutando mudanças de autenticação
-  Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+  // Listener do Supabase — captura o retorno do OAuth do Google
+  Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
     final session = data.session;
-    if (session != null) {
-      navigatorKey.currentState?.pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
+    if (session == null) return;
+
+    // Evita processar se o usuário já está logado pelo nosso sistema
+    if (AuthProvider().estaLogado) return;
+
+    try {
+      // ALTERAÇÃO 1: Captura o nome completo vindo do Google/Supabase
+      final nomeGoogle = session.user.userMetadata?['full_name'] ?? "";
+
+      // ALTERAÇÃO 2: Adiciona o nome como parâmetro na URL (Query String)
+      final response = await http
+          .get(
+            Uri.parse(
+              'https://ringolingo-production.up.railway.app/Controller/loginSocial?nome=$nomeGoogle',
+            ),
+            headers: {'Authorization': 'Bearer ${session.accessToken}'},
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        final dados = body['dados'];
+
+        if (dados != null) {
+          await AnalyticsService.loginSucesso();
+          AuthProvider().salvarSessao(
+            token: dados['token'],
+            nome: dados['nome'],
+            id: dados['id'] as int,
+            nivel: (dados['nivel'] ?? 1) as int,
+            xpTotal: (dados['xpTotal'] ?? 0) as int,
+            xpDoNivel: (dados['xpDoNivel'] ?? 0) as int,
+          );
+
+          navigatorKey.currentState?.pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const HomePage()),
+            (route) => false,
+          );
+        }
+      } else {
+        debugPrint('Erro no loginSocial: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Erro ao conectar com backend no loginSocial: $e');
     }
   });
 
@@ -40,7 +82,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: navigatorKey, // Atribuindo a chave aqui
+      navigatorKey: navigatorKey,
       navigatorObservers: [AnalyticsService.observer],
       debugShowCheckedModeBanner: false,
       title: 'RingoLingo',
@@ -51,7 +93,7 @@ class MyApp extends StatelessWidget {
           titleLarge: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             fontSize: 38,
-            color: Color(0xFF4DA3FF),
+            color: const Color(0xFF4DA3FF),
           ),
         ),
         appBarTheme: AppBarTheme(
@@ -64,14 +106,17 @@ class MyApp extends StatelessWidget {
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 15,
+            horizontal: 20,
+          ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey, width: 2),
+            borderSide: const BorderSide(color: Colors.grey, width: 2),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Color(0xFF4DA3FF), width: 2),
+            borderSide: const BorderSide(color: Color(0xFF4DA3FF), width: 2),
           ),
         ),
         scaffoldBackgroundColor: const Color(0xFFF7FAFF),
