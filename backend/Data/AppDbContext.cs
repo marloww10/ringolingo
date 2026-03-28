@@ -128,7 +128,7 @@ CONVERSATION RULES:
 - Do not use asterisks, slashes, or markdown symbols.
 - Always use line breaks between sections.",
                     ImagemUrl = "/personas/ringoGarçom.png",
-                    NivelNecessario = 5
+                    NivelNecessario = 2
                 },
 
                 new Persona
@@ -188,7 +188,7 @@ CONVERSATION RULES:
 - Do not use asterisks, slashes, or markdown symbols.
 - Always use line breaks between sections.",
                     ImagemUrl = "/personas/ringoEntrevistador.png",
-                    NivelNecessario = 10
+                    NivelNecessario = 4
                 },
 
                 new Persona
