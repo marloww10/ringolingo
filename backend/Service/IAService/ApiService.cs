@@ -110,7 +110,7 @@ Important rules:
             var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={apiKey}";
 
 
-var requestBody = new
+            var requestBody = new
             {
                 contents = new[]
                 {
@@ -118,16 +118,11 @@ var requestBody = new
                     {
                         parts = new[]
                         {
-                            new { text = persona.Descricao },
-                            new { text = contexto },
-                            new { text = mensagemUsuario }
+                            new {text = persona.Descricao},
+                            new {text = contexto},
+                            new { text = mensagemUsuario}
                         }
                     }
-                },
-                generationConfig = new
-                {
-                    maxOutputTokens = 400,
-                    temperature = 0.8
                 }
             };
 
