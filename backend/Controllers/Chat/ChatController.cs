@@ -93,11 +93,18 @@ namespace Ringolingo.Controllers
                 {
                     respostaIa = await _IaService.GerarResposta(chatDto.Conteudo, persona, contexto);
                 }
-                catch
-                {
-                    await _context.SaveChangesAsync();
-                    return StatusCode(503, "Serviço de IA indisponível. Tente novamente.");
-                }
+                catch (Exception ex)
+                                {
+                                    // O espião que vai gritar o erro no log do Railway:
+                                    Console.WriteLine("🚨 ERRO FATAL DO GEMINI: " + ex.Message);
+                                    if (ex.InnerException != null)
+                                    {
+                                        Console.WriteLine("🚨 DETALHE INTERNO: " + ex.InnerException.Message);
+                                    }
+
+                                    await _context.SaveChangesAsync();
+                                    return StatusCode(503, "Serviço de IA indisponível. Tente novamente.");
+                                }
 
                 var respostaMensagem = new Mensagem
                 {
