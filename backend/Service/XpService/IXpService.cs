@@ -14,5 +14,7 @@
         Task<int> CalcularStreakAsync(int usuarioId);
 
         Task<object> ObterXpAtualAsync(int usuarioId);
+
+        Task GanharXpPorMensagemAsync(int usuarioId, int personaId);Task GanharXpPorMensagemAsync(int usuarioId, int personaId);
     }
 }

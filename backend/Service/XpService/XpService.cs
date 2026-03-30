@@ -38,7 +38,7 @@ namespace Ringolingo.Service.XpService
         { 20, 50000 }
     };
 
-        public async Task GanharXpAsync(int usuarioId, int quantidade, string motivo)
+        public async Task GanharXpAsync(int usuarioId, int quantidade, string motivo, int personaId = 0)
         {
             var perfil = await _context.Usuarios.FindAsync(usuarioId);
 
@@ -62,7 +62,8 @@ namespace Ringolingo.Service.XpService
                 UsuarioId = usuarioId,
                 Quantidade = quantidade,
                 Motivo = motivo,
-                Data = DateTime.Now
+                Data = DateTime.Now,
+                PersonaId = personaId
             };
 
             _context.HistoricoXps.Add(historico);
@@ -71,9 +72,9 @@ namespace Ringolingo.Service.XpService
         }
 
 
-        public async Task GanharXpPorMensagemAsync(int usuarioId)
+        public async Task GanharXpPorMensagemAsync(int usuarioId, int personaId)
         {
-            await GanharXpAsync(usuarioId, 10, "Mensagem enviada");
+            await GanharXpAsync(usuarioId, 10, "Mensagem enviada", personaId);
         }
 
         public async Task GanharXpPorLoginAsync(int usuarioId)
@@ -93,7 +94,7 @@ namespace Ringolingo.Service.XpService
 
         public async Task VerificarSequenciaDiasAsync(int usuarioId)
         {
-           
+            
             var dias = await _context.HistoricoXps
                 .Where(h => h.UsuarioId == usuarioId)
                 .Select(h => h.Data.Date)

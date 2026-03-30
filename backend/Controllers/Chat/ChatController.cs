@@ -123,7 +123,7 @@ namespace Ringolingo.Controllers
                 if (primeiraInteracaoHoje)
                     await _xpService.GanharXpPorPrimeiraInteracaoAsync(usuarioId);
 
-                await _xpService.GanharXpPorMensagemAsync(usuarioId);
+                await _xpService.GanharXpPorMensagemAsync(usuarioId, persona.Id);
 
                 await _missaoService.Conversador(usuarioId);
                 await _missaoService.Tagarela(usuarioId);
