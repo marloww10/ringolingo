@@ -107,7 +107,7 @@ Important rules:
         public async Task<string> GerarResposta (string mensagemUsuario, Persona persona, string contexto)
         {
             var apiKey = _configuration["Gemini:ApiKey"];
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={apiKey}";
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={apiKey}";
 
 
             var requestBody = new
