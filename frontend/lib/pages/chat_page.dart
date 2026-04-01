@@ -181,14 +181,15 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
             .trim();
         if (resto.isNotEmpty) tipPortuguese += '$resto\n';
       } else if (l.isNotEmpty) {
-        if (secaoAtual == 'english')
+        if (secaoAtual == 'english') {
           english += '$l\n';
-        else if (secaoAtual == 'portuguese')
+        } else if (secaoAtual == 'portuguese') {
           portuguese += '$l\n';
-        else if (secaoAtual == 'tipEnglish')
+        } else if (secaoAtual == 'tipEnglish') {
           tipEnglish += '$l\n';
-        else if (secaoAtual == 'tipPortuguese')
+        } else if (secaoAtual == 'tipPortuguese') {
           tipPortuguese += '$l\n';
+        }
       }
     }
 
