@@ -3,7 +3,7 @@
 ![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)
 ![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
 ![ASP.NET](https://img.shields.io/badge/ASP.NET_Core-512BD4?style=for-the-badge&logo=.net&logoColor=white)
-![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 ![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
@@ -28,8 +28,7 @@ O aplicativo simula situações reais de comunicação, como:
 
 Dessa forma, o usuário consegue praticar **conversação e compreensão** em um ambiente interativo.
 
-As conversas dentro do aplicativo acontecem **exclusivamente por texto**: o Ringo envia uma mensagem e o usuário responde também com texto.  
-Atualmente o sistema **não possui suporte para voz ou áudio**, sendo totalmente baseado em chat.
+As conversas dentro do aplicativo acontecem **exclusivamente por texto**: o Ringo envia uma mensagem e o usuário responde também com texto.
 
 O objetivo é tornar o aprendizado de idiomas **mais natural, acessível e motivador**.
 
@@ -68,7 +67,7 @@ Projeto desenvolvido pela **RingoTeam**.
 - ASP.NET Core
 
 ## Banco de Dados
-- SQL Server
+- PostgreSQL
 
 ## Serviços e Integrações
 - Firebase (Analytics e Notificações)
@@ -105,18 +104,6 @@ Funções principais:
 - controle de progresso e dados do usuário
 
 Além da arquitetura técnica, o projeto também inclui o **design das telas do aplicativo e dos personagens (Ringos)**, que representam diferentes contextos de conversa para prática do inglês.
-
----
-
-# 🚀 Futuras Melhorias
-
-Algumas melhorias planejadas para o projeto incluem:
-
-- novos personagens (Ringos)
-- sistema de missões e conquistas
-- expansão de cenários de conversa
-- melhorias na personalização do aprendizado
-- melhorias de gamificação
 
 ---
 
