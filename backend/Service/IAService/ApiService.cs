@@ -129,14 +129,13 @@ Important rules:
             var response = await _httpClient.PostAsJsonAsync(url, requestBody);
 
             if (!response.IsSuccessStatusCode)
-{
-    var statusCode = (int)response.StatusCode;
-    
-    return StatusCode(statusCode, new { 
-        sucesso = false, 
-        mensagem = $"Erro na API: {response.StatusCode}",
-        status = statusCode 
-    });
+            {
+
+                return new RespostaIa { 
+                    Sucesso = false, 
+                    Mensagem = $"Erro API: {response.StatusCode}", 
+                    Status = (int)response.StatusCode 
+            };
 }
 
             var json = await response.Content.ReadFromJsonAsync<JsonElement>();
