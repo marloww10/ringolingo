@@ -3,6 +3,7 @@ import 'package:ringolingo/models/ringo_model.dart';
 import 'package:ringolingo/providers/auth_provider.dart';
 import 'package:ringolingo/services/analytics_service.dart';
 import 'package:ringolingo/services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatPage extends StatefulWidget {
   final RingoModel ringo;
@@ -249,6 +250,10 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     final texto = _mensagemController.text.trim();
     if (texto.isEmpty || _digitando) return;
 
+    SharedPreferences.getInstance().then((prefs) {
+      prefs.setString('ultimo_ringo_acessado', widget.ringo.nome);
+    });
+
     AnalyticsService.chatMensagemEnviada(widget.ringo.nome);
 
     final agora = TimeOfDay.now();
@@ -267,6 +272,36 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
       conteudo: texto,
       persona: widget.ringo.nome,
     );
+    if (!resposta.sucesso) {
+
+      int status = resposta.dados['status'] ?? 500;
+      String msgErro = "Erro ao enviar mensagem.";
+
+      if (status == 429) {
+        msgErro = "Ringo atingiu o limite de mensagens. Tente em 1 minuto! ⏳";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(msgErro),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          margin: EdgeInsets.only(
+            bottom:
+                MediaQuery.of(context).viewInsets.bottom +
+                20, // Sobe com o teclado
+            left: 20,
+            right: 20,
+          ),
+        ),
+      );
+
+      setState(() => _digitando = false);
+      return; // Para a execução aqui para não adicionar bolhas de erro no chat
+    }
 
     setState(() {
       _digitando = false;

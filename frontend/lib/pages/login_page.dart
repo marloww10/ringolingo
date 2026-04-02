@@ -179,11 +179,25 @@ class _LoginPageState extends State<LoginPage> {
               child: InkWell(
                 borderRadius: BorderRadius.circular(12),
                 onTap: () async {
-                  await Supabase.instance.client.auth.signInWithOAuth(
-                    OAuthProvider.google,
-                    redirectTo: 'ringolingo://login-callback',
-                    authScreenLaunchMode: LaunchMode.inAppWebView,
-                  );
+                  setState(() => carregando = true);
+
+                  try {
+                    await Supabase.instance.client.auth.signInWithOAuth(
+                      OAuthProvider.google,
+                      redirectTo: 'ringolingo://login-callback',
+                      authScreenLaunchMode: LaunchMode.inAppWebView,
+                    );
+                  } catch (erro) {
+                    if (mounted) {
+                      setState(() => carregando = false);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Erro ao abrir o login com o Google."),
+                          backgroundColor: Colors.redAccent,
+                        ),
+                      );
+                    }
+                  }
                 },
                 child: Ink(
                   decoration: BoxDecoration(

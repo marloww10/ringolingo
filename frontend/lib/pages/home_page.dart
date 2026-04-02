@@ -12,6 +12,7 @@ import 'package:ringolingo/pages/perfil_page.dart';
 import 'package:ringolingo/providers/auth_provider.dart';
 import 'package:ringolingo/services/analytics_service.dart';
 import 'package:ringolingo/services/api_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -33,6 +34,7 @@ class _HomePageState extends State<HomePage> {
   int _ultimoXpVerificado = -1;
   bool _mostrarXp = false;
   int _xpGanhadoRecente = 0;
+  String? _ultimoRingoNome;
 
   List<MissaoModel> _missoes = [];
   List<RingoModel> _ringos = [];
@@ -49,7 +51,12 @@ class _HomePageState extends State<HomePage> {
       _erroMissoes = false;
       _erroRingos = false;
     });
-    await Future.wait([_carregarDados(), _buscarPersonas(), _buscarMissoes()]);
+    await Future.wait([
+      _carregarDados(),
+      _buscarPersonas(),
+      _buscarMissoes(),
+      _buscarUltimoRingo(),
+    ]);
   }
 
   Future<void> _buscarPersonas() async {
@@ -64,6 +71,13 @@ class _HomePageState extends State<HomePage> {
         setState(() => _erroRingos = true);
       }
     }
+  }
+
+  Future<void> _buscarUltimoRingo() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _ultimoRingoNome = prefs.getString('ultimo_ringo_acessado');
+    });
   }
 
   Future<void> _buscarMissoes() async {
@@ -353,8 +367,7 @@ class _HomePageState extends State<HomePage> {
                               fontSize: 25,
                               fontWeight: FontWeight.bold,
                             ),
-                            overflow: TextOverflow
-                                .ellipsis,
+                            overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                           ),
                         ),
@@ -527,6 +540,114 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(height: 15),
+
+                    if (_ultimoRingoNome != null && _ringos.isNotEmpty)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 12),
+                          Builder(
+                            builder: (context) {
+                              final ringoRetomada = _ringos.firstWhere(
+                                (r) => r.nome == _ultimoRingoNome,
+                                orElse: () => _ringos.first,
+                              );
+
+                              return GestureDetector(
+                                onTap: () {
+                                  AnalyticsService.homeRingoAberto(
+                                    ringoRetomada.nome,
+                                  );
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          ChatPage(ringo: ringoRetomada),
+                                    ),
+                                  ).then((_) {
+                                    _carregarDados();
+                                    _buscarMissoes();
+                                    _buscarUltimoRingo();
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEEF4FF),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: const Border(
+                                      bottom: BorderSide(
+                                        color: Color(0xFF4DA3FF),
+                                        width: 6,
+                                      ),
+                                      left: BorderSide(
+                                        color: Color(0xFF4DA3FF),
+                                        width: 2,
+                                      ),
+                                      right: BorderSide(
+                                        color: Color(0xFF4DA3FF),
+                                        width: 2,
+                                      ),
+                                      top: BorderSide(
+                                        color: Color(0xFF4DA3FF),
+                                        width: 2,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Image.network(
+                                        'https://ringolingo-production.up.railway.app${ringoRetomada.imagemUrl}',
+                                        height: 50,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                const Icon(
+                                                  Icons.person,
+                                                  size: 50,
+                                                  color: Colors.grey,
+                                                ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Text(
+                                              "Continuar conversa com",
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.black54,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            Text(
+                                              ringoRetomada.nome,
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.arrow_forward_ios_rounded,
+                                        color: Color(0xFF4DA3FF),
+                                        size: 20,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(
+                            height: 24,
+                          ), // Espaço antes de começar os Ringos em Destaque
+                        ],
+                      ),
                     Text(
                       'Ringo em destaque',
                       style: GoogleFonts.poppins(
@@ -558,114 +679,123 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             )
-                          : ListView.builder(
-                              padding: const EdgeInsets.only(bottom: 20),
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _ringos.isEmpty ? 3 : _ringos.length,
-                              physics: const BouncingScrollPhysics(),
-                              itemBuilder: (context, index) {
-                                if (_ringos.isEmpty) {
-                                  return _skeletonRingo();
-                                }
-                                final ringo = _ringos[index];
-                                final desbloqueado =
-                                    _nivel >= ringo.nivelNecessario;
-                                return GestureDetector(
-                                  onTap: desbloqueado
-                                      ? () {
-                                          AnalyticsService.homeRingoAberto(
-                                            ringo.nome,
-                                          );
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) =>
-                                                  ChatPage(ringo: ringo),
-                                            ),
-                                          ).then((_) {
-                                            _carregarDados();
-                                            _buscarMissoes();
-                                          });
-                                        }
-                                      : () {
-                                          AnalyticsService.homeRingoBloqueadoClick(
-                                            ringo.nome,
-                                          );
-                                          _mostrarDialogBloqueado(ringo);
-                                        },
-                                  child: Container(
-                                    margin: const EdgeInsets.only(right: 10),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border(
-                                        bottom: BorderSide(
-                                          color: desbloqueado
-                                              ? const Color(0xFF4DA3FF)
-                                              : Colors.grey.shade400,
-                                          width: 6,
-                                        ),
-                                        left: BorderSide(
-                                          color: desbloqueado
-                                              ? const Color(0xFF4DA3FF)
-                                              : Colors.grey.shade400,
-                                          width: 2,
-                                        ),
-                                        right: BorderSide(
-                                          color: desbloqueado
-                                              ? const Color(0xFF4DA3FF)
-                                              : Colors.grey.shade400,
-                                          width: 2,
-                                        ),
-                                        top: BorderSide(
-                                          color: desbloqueado
-                                              ? const Color(0xFF4DA3FF)
-                                              : Colors.grey.shade400,
-                                          width: 2,
-                                        ),
-                                      ),
-                                    ),
-                                    padding: const EdgeInsets.only(top: 20),
-                                    width: 150,
-                                    child: Column(
-                                      children: [
-                                        Opacity(
-                                          opacity: desbloqueado ? 1.0 : 0.4,
-                                          child: Image.network(
-                                            'https://ringolingo-production.up.railway.app${ringo.imagemUrl}',
-                                            height: 100,
-                                            errorBuilder:
-                                                (context, error, stackTrace) =>
-                                                    const Icon(
-                                                      Icons.person,
-                                                      size: 60,
-                                                      color: Colors.grey,
-                                                    ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 5),
-                                        Text(
-                                          ringo.nome,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        Text(
-                                          desbloqueado
-                                              ? 'Disponível'
-                                              : 'Nv. ${ringo.nivelNecessario}',
-                                          style: TextStyle(
-                                            fontSize: 12,
+                          : SizedBox(
+                              height:
+                                  210, // ⬅️ Isso impede o overflow! Delimita a altura da lista.
+                              child: ListView.builder(
+                                padding: const EdgeInsets.only(bottom: 20),
+                                scrollDirection: Axis.horizontal,
+                                itemCount: _ringos.isEmpty ? 3 : _ringos.length,
+                                physics: const BouncingScrollPhysics(),
+                                itemBuilder: (context, index) {
+                                  if (_ringos.isEmpty) {
+                                    return _skeletonRingo();
+                                  }
+                                  final ringo = _ringos[index];
+                                  final desbloqueado =
+                                      _nivel >= ringo.nivelNecessario;
+
+                                  return GestureDetector(
+                                    onTap: desbloqueado
+                                        ? () {
+                                            AnalyticsService.homeRingoAberto(
+                                              ringo.nome,
+                                            );
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    ChatPage(ringo: ringo),
+                                              ),
+                                            ).then((_) {
+                                              _carregarDados();
+                                              _buscarMissoes();
+                                              _buscarUltimoRingo();
+                                            });
+                                          }
+                                        : () {
+                                            AnalyticsService.homeRingoBloqueadoClick(
+                                              ringo.nome,
+                                            );
+                                            _mostrarDialogBloqueado(ringo);
+                                          },
+                                    child: Container(
+                                      margin: const EdgeInsets.only(right: 10),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border(
+                                          bottom: BorderSide(
                                             color: desbloqueado
                                                 ? const Color(0xFF4DA3FF)
-                                                : Colors.grey,
+                                                : Colors.grey.shade400,
+                                            width: 6,
+                                          ),
+                                          left: BorderSide(
+                                            color: desbloqueado
+                                                ? const Color(0xFF4DA3FF)
+                                                : Colors.grey.shade400,
+                                            width: 2,
+                                          ),
+                                          right: BorderSide(
+                                            color: desbloqueado
+                                                ? const Color(0xFF4DA3FF)
+                                                : Colors.grey.shade400,
+                                            width: 2,
+                                          ),
+                                          top: BorderSide(
+                                            color: desbloqueado
+                                                ? const Color(0xFF4DA3FF)
+                                                : Colors.grey.shade400,
+                                            width: 2,
                                           ),
                                         ),
-                                      ],
+                                      ),
+                                      padding: const EdgeInsets.only(top: 20),
+                                      width: 150,
+                                      child: Column(
+                                        children: [
+                                          Opacity(
+                                            opacity: desbloqueado ? 1.0 : 0.4,
+                                            child: Image.network(
+                                              'https://ringolingo-production.up.railway.app${ringo.imagemUrl}',
+                                              height: 100,
+                                              errorBuilder:
+                                                  (
+                                                    context,
+                                                    error,
+                                                    stackTrace,
+                                                  ) => const Icon(
+                                                    Icons.person,
+                                                    size: 60,
+                                                    color: Colors.grey,
+                                                  ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Text(
+                                            ringo.nome,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          Text(
+                                            desbloqueado
+                                                ? 'Disponível'
+                                                : 'Nv. ${ringo.nivelNecessario}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: desbloqueado
+                                                  ? const Color(0xFF4DA3FF)
+                                                  : Colors.grey,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
                             ),
                     ),
 

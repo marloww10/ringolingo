@@ -5,6 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:lottie/lottie.dart';
 import 'package:ringolingo/pages/cadastro_page.dart';
 import 'package:ringolingo/pages/login_page.dart';
+import 'package:ringolingo/pages/teladecarregamento_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class InicioPage extends StatefulWidget {
@@ -15,8 +16,10 @@ class InicioPage extends StatefulWidget {
 }
 
 class _InicioPageState extends State<InicioPage> {
+  bool _carregando = false;
   @override
   Widget build(BuildContext context) {
+    if (_carregando) return const TeladecarregamentoPage();
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -104,11 +107,31 @@ class _InicioPageState extends State<InicioPage> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(12),
                           onTap: () async {
-                            await Supabase.instance.client.auth.signInWithOAuth(
-                              OAuthProvider.google,
-                              redirectTo: 'ringolingo://login-callback',
-                              authScreenLaunchMode: LaunchMode.inAppWebView,
+                            setState(
+                              () => _carregando = true,
                             );
+
+                            try {
+                              await Supabase.instance.client.auth
+                                  .signInWithOAuth(
+                                    OAuthProvider.google,
+                                    redirectTo: 'ringolingo://login-callback',
+                                    authScreenLaunchMode:
+                                        LaunchMode.inAppWebView,
+                                  );
+                            } catch (erro) {
+                              if (mounted) {
+                                setState(() => _carregando = false);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "Erro ao abrir o login com o Google.",
+                                    ),
+                                    backgroundColor: Colors.redAccent,
+                                  ),
+                                );
+                              }
+                            }
                           },
                           child: Ink(
                             decoration: BoxDecoration(
