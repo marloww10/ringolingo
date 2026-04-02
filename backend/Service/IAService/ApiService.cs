@@ -130,13 +130,8 @@ Important rules:
 
             if (!response.IsSuccessStatusCode)
             {
-
-                return new RespostaIa { 
-                    Sucesso = false, 
-                    Mensagem = $"Erro API: {response.StatusCode}", 
-                    Status = (int)response.StatusCode 
-            };
-}
+                return $"Erro ao chamar IA: {response.StatusCode}";
+            }
 
             var json = await response.Content.ReadFromJsonAsync<JsonElement>();
 
