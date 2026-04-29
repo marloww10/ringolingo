@@ -120,6 +120,20 @@ Algumas melhorias planejadas para o projeto incluem:
 
 ---
 
+# Modelo Conceitual
+
+<img width="1447" height="764" alt="image" src="https://github.com/user-attachments/assets/ac038201-712f-4df0-8c43-61919e8502d2" />
+
+---
+
+# Modelo Lógico
+
+<img width="1576" height="523" alt="image" src="https://github.com/user-attachments/assets/4a4e6b1b-9696-42cd-9d7a-a61d540c19a6" />
+
+---
+
+
+
 # 📌 Nome da Equipe
 
 **RingoTeam**
