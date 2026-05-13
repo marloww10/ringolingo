@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Ringolingo.Data;
 using Ringolingo.Models;
+using Ringolingo.Models.Dto;
 using Ringolingo.Service.XpService;
 
 namespace Ringolingo.Controllers
