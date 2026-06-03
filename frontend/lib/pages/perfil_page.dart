@@ -4,6 +4,7 @@ import 'package:ringolingo/pages/conquista_page.dart';
 import 'package:ringolingo/pages/inicio_page.dart';
 import 'package:ringolingo/pages/language_selection_page.dart';
 import 'package:ringolingo/pages/quem_somos_page.dart';
+import 'package:ringolingo/pages/ranking_page.dart';
 import 'package:ringolingo/providers/auth_provider.dart';
 import 'package:ringolingo/services/api_service.dart';
 import 'package:ringolingo/services/analytics_service.dart';
@@ -114,10 +115,10 @@ class _PerfilPageState extends State<PerfilPage> {
                         radius: 60,
                         backgroundImage:
                             auth.fotoUrl != null && auth.fotoUrl!.isNotEmpty
-                            ? NetworkImage(auth.fotoUrl!) as ImageProvider
-                            : const AssetImage(
-                                "lib/assets/ringoEntrevistador.png",
-                              ),
+                                ? NetworkImage(auth.fotoUrl!) as ImageProvider
+                                : const AssetImage(
+                                    "lib/assets/ringoEntrevistador.png",
+                                  ),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -205,6 +206,29 @@ class _PerfilPageState extends State<PerfilPage> {
                   ),
                   const SizedBox(height: 10),
 
+                  // Ranking
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const RankingPage(),
+                        ),
+                      );
+                    },
+                    child: _itemCard(
+                      icon: Icons.leaderboard_rounded,
+                      label: "Ranking",
+                      iconColor: const Color(0xFF4DA3FF),
+                      bgColor: const Color(0xFFEEF4FF),
+                      trailing: Icon(
+                        Icons.chevron_right_rounded,
+                        color: Colors.grey.shade400,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Idiomas
                   GestureDetector(
                     onTap: () async {
                       await AnalyticsService.perfilIdiomas();
@@ -227,6 +251,7 @@ class _PerfilPageState extends State<PerfilPage> {
                   ),
                   const SizedBox(height: 10),
 
+                  // Quem somos
                   GestureDetector(
                     onTap: () async {
                       await AnalyticsService.perfilQuemSomos();
@@ -249,6 +274,8 @@ class _PerfilPageState extends State<PerfilPage> {
                   ),
 
                   const SizedBox(height: 30),
+
+                  // Botão Sair
                   SizedBox(
                     width: double.infinity,
                     height: 60,
@@ -282,7 +309,6 @@ class _PerfilPageState extends State<PerfilPage> {
                                       Navigator.pop(dialogContext);
                                       AnalyticsService.perfilLogout();
                                       AuthProvider().encerrarSessao();
-
                                       if (context.mounted) {
                                         Navigator.pushAndRemoveUntil(
                                           context,
@@ -412,7 +438,7 @@ class _PerfilPageState extends State<PerfilPage> {
               ],
             ),
           ),
-          ?trailing,
+          if (trailing != null) trailing,
         ],
       ),
     );
