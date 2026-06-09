@@ -597,7 +597,7 @@ class _HomePageState extends State<HomePage> {
                                   child: Row(
                                     children: [
                                       Image.network(
-                                        'https://ringolingo-production.up.railway.app${ringoRetomada.imagemUrl}',
+                                        'https://ringolingo.onrender.com${ringoRetomada.imagemUrl}',
                                         height: 50,
                                         errorBuilder:
                                             (context, error, stackTrace) =>
@@ -757,7 +757,7 @@ class _HomePageState extends State<HomePage> {
                                           Opacity(
                                             opacity: desbloqueado ? 1.0 : 0.4,
                                             child: Image.network(
-                                              'https://ringolingo-production.up.railway.app${ringo.imagemUrl}',
+                                              'https://ringolingo.onrender.com${ringo.imagemUrl}',
                                               height: 100,
                                               errorBuilder:
                                                   (

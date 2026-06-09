@@ -273,7 +273,6 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
       persona: widget.ringo.nome,
     );
     if (!resposta.sucesso) {
-
       int status = resposta.dados['status'] ?? 500;
       String msgErro = "Erro ao enviar mensagem.";
 
@@ -349,7 +348,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
           children: [
             CircleAvatar(
               backgroundImage: NetworkImage(
-                'https://ringolingo-production.up.railway.app${widget.ringo.imagemUrl}',
+                'https://ringolingo.onrender.com${widget.ringo.imagemUrl}',
               ),
               radius: 20,
             ),
@@ -586,7 +585,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
         children: [
           CircleAvatar(
             backgroundImage: NetworkImage(
-              'https://ringolingo-production.up.railway.app${widget.ringo.imagemUrl}',
+              'https://ringolingo.onrender.com${widget.ringo.imagemUrl}',
             ),
             radius: 16,
           ),
@@ -793,7 +792,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
         children: [
           CircleAvatar(
             backgroundImage: NetworkImage(
-              'https://ringolingo-production.up.railway.app${widget.ringo.imagemUrl}',
+              'https://ringolingo.onrender.com${widget.ringo.imagemUrl}',
             ),
             radius: 16,
           ),

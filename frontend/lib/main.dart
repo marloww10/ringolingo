@@ -39,7 +39,7 @@ void main() async {
       final response = await http
           .get(
             Uri.parse(
-              'https://ringolingo-production.up.railway.app/Controller/loginSocial?nome=$nomeGoogle',
+              'https://ringolingo.onrender.com/Controller/loginSocial?nome=$nomeGoogle',
             ),
             headers: {'Authorization': 'Bearer ${session.accessToken}'},
           )

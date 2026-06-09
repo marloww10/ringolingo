@@ -5,7 +5,7 @@ import 'package:ringolingo/models/missao_model.dart';
 import 'package:ringolingo/models/ringo_model.dart';
 
 class ApiService {
-  static const String baseUrl = "https://ringolingo-production.up.railway.app";
+  static const String baseUrl = "https://ringolingo.onrender.com";
 
   static Future<List<RingoModel>?> buscarPersonas() async {
     try {
