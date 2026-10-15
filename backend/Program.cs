@@ -125,16 +125,39 @@ namespace Ringolingo
         }
 
         // FUNÇÃO PARA TRADUZIR A URL DO RAILWAY
+
         static string ConverterUrlParaConnectionString(string url)
         {
             var uri = new Uri(url);
-            var host = uri.Host;
-            var port = uri.Port;
-            var database = uri.AbsolutePath.Trim('/');
-            var user = uri.UserInfo.Split(':')[0];
-            var password = uri.UserInfo.Split(':')[1];
 
-            return $"Host={host};Port={port};Database={database};Username={user};Password={password};SSL Mode=Require;Trust Server Certificate=true";
+            var port = uri.Port > 0 ? uri.Port : 5432;
+            var database = Uri.UnescapeDataString(
+                uri.AbsolutePath.Trim('/'));
+
+            var credentials = uri.UserInfo.Split(':', 2);
+
+            if (credentials.Length != 2)
+            {
+                throw new ArgumentException(
+                    "A DATABASE_URL não contém credenciais válidas.");
+            }
+
+            var user = Uri.UnescapeDataString(credentials[0]);
+            var password = Uri.UnescapeDataString(credentials[1]);
+
+            var builder = new Npgsql.NpgsqlConnectionStringBuilder
+            {
+                Host = uri.Host,
+                Port = port,
+                Database = database,
+                Username = user,
+                Password = password,
+                SslMode = Npgsql.SslMode.Require,
+                TrustServerCertificate = true
+            };
+
+            return builder.ConnectionString;
         }
+
     }
 }
