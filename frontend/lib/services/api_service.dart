@@ -171,33 +171,88 @@ class ApiService {
     }
   }
 
-  static Future<ApiResponse> enviarMensagem({
-    required String token,
-    required String conteudo,
-    required String persona,
-  }) async {
-    try {
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl/Chat/EnviarMensagem'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-            body: jsonEncode({'conteudo': conteudo, 'nomePersona': persona}),
-          )
-          .timeout(const Duration(seconds: 15));
 
-      final body = jsonDecode(response.body);
-      return ApiResponse(
-        sucesso: response.statusCode == 200,
-        mensagem: body['respostaIa'] ?? '',
-        dados: body,
-      );
-    } catch (e) {
-      return ApiResponse(sucesso: false, mensagem: 'Erro de conexão: $e');
+static Future<ApiResponse> enviarMensagem({
+  required String token,
+  required String conteudo,
+  required String persona,
+}) async {
+  try {
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl/Chat/EnviarMensagem'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode({
+            'conteudo': conteudo,
+            'nomePersona': persona,
+          }),
+        )
+        .timeout(const Duration(seconds: 60));
+
+    dynamic body;
+
+    try {
+      body = jsonDecode(response.body);
+    } on FormatException {
+      body = null;
     }
+
+    final Map<String, dynamic>? dados =
+        body is Map ? Map<String, dynamic>.from(body) : null;
+
+    final sucessoHttp =
+        response.statusCode >= 200 && response.statusCode < 300;
+
+    final respostaIa = dados?['respostaIa']?.toString().trim() ?? '';
+
+    if (sucessoHttp && respostaIa.isNotEmpty) {
+      return ApiResponse(
+        sucesso: true,
+        mensagem: respostaIa,
+        dados: dados,
+      );
+    }
+
+    String mensagemErro =
+        dados?['mensagem']?.toString() ??
+        dados?['message']?.toString() ??
+        dados?['erro']?.toString() ??
+        dados?['title']?.toString() ??
+        '';
+
+    if (mensagemErro.isEmpty) {
+      mensagemErro = response.statusCode == 401
+          ? 'Sessão inválida. Faça login novamente.'
+          : response.statusCode == 403
+              ? 'Você não tem autorização para enviar mensagens.'
+              : response.statusCode == 429
+                  ? 'Limite de mensagens atingido. Tente novamente em instantes.'
+                  : 'A API retornou HTTP ${response.statusCode} sem uma resposta válida.';
+    }
+
+    return ApiResponse(
+      sucesso: false,
+      mensagem: mensagemErro,
+      dados: {
+        ...?dados,
+        'statusCode': response.statusCode,
+      },
+    );
+  } catch (e) {
+    return ApiResponse(
+      sucesso: false,
+      mensagem: e is http.ClientException
+          ? 'Não foi possível conectar à API.'
+          : e.toString().contains('TimeoutException')
+              ? 'A API demorou demais para responder.'
+              : 'Falha na comunicação com a API: $e',
+    );
   }
+}
+
 
   static Future<int> buscarStreak(String token) async {
     try {

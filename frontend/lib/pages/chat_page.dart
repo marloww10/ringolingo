@@ -246,94 +246,132 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
     }
   }
 
-  Future<void> _enviarMensagem() async {
-    final texto = _mensagemController.text.trim();
-    if (texto.isEmpty || _digitando) return;
 
-    SharedPreferences.getInstance().then((prefs) {
-      prefs.setString('ultimo_ringo_acessado', widget.ringo.nome);
+Future<void> _enviarMensagem() async {
+  final texto = _mensagemController.text.trim();
+  if (texto.isEmpty || _digitando) return;
+
+  final auth = AuthProvider();
+  final token = auth.token;
+
+  if (token == null || token.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Sua sessão expirou. Faça login novamente.'),
+        backgroundColor: Colors.redAccent,
+      ),
+    );
+    return;
+  }
+
+  SharedPreferences.getInstance().then((prefs) {
+    prefs.setString('ultimo_ringo_acessado', widget.ringo.nome);
+  });
+
+  AnalyticsService.chatMensagemEnviada(widget.ringo.nome);
+
+  final agora = TimeOfDay.now();
+  final hora =
+      '${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')}';
+
+  final indiceMensagem = _mensagens.length;
+
+  setState(() {
+    _mensagens.add({
+      'remetente': 'usuario',
+      'texto': texto,
+      'hora': hora,
     });
+    _mensagemController.clear();
+    _digitando = true;
+  });
 
-    AnalyticsService.chatMensagemEnviada(widget.ringo.nome);
+  _scrollParaBaixo();
 
-    final agora = TimeOfDay.now();
-    final hora =
-        '${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')}';
-
-    setState(() {
-      _mensagens.add({"remetente": "usuario", "texto": texto, "hora": hora});
-      _mensagemController.clear();
-      _digitando = true;
-    });
-    _scrollParaBaixo();
-
+  try {
     final resposta = await ApiService.enviarMensagem(
-      token: AuthProvider().token ?? "",
+      token: token,
       conteudo: texto,
       persona: widget.ringo.nome,
     );
-    if (!resposta.sucesso) {
-      final status = resposta.dados?['status'];
-      String msgErro = "Erro ao enviar mensagem.";
 
-      if (status == 429) {
-        msgErro = "Ringo atingiu o limite de mensagens. Tente em 1 minuto! ⏳";
+    if (!mounted) return;
+
+    final dados = resposta.dados;
+    final Map<String, dynamic>? corpo =
+        dados is Map ? Map<String, dynamic>.from(dados) : null;
+
+    final textoResposta =
+        corpo?['respostaIa']?.toString().trim() ?? '';
+
+    if (!resposta.sucesso || textoResposta.isEmpty) {
+      AnalyticsService.erroChat(widget.ringo.nome);
+
+      final status = corpo?['status'];
+      final statusHttp = corpo?['statusCode'];
+
+      String mensagemErro = resposta.mensagem.trim();
+
+      if (status == 429 || statusHttp == 429) {
+        mensagemErro =
+            'Ringo atingiu o limite de mensagens. Tente novamente em 1 minuto! ⏳';
+      } else if (mensagemErro.isEmpty ||
+          mensagemErro == 'Erro desconhecido') {
+        mensagemErro = 'Não foi possível obter uma resposta do Ringo.';
       }
+
+      setState(() {
+        _digitando = false;
+      });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(msgErro),
+          content: Text(mensagemErro),
           backgroundColor: Colors.redAccent,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          margin: EdgeInsets.only(
-            bottom:
-                MediaQuery.of(context).viewInsets.bottom +
-                20, // Sobe com o teclado
-            left: 20,
-            right: 20,
-          ),
         ),
       );
 
-      setState(() => _digitando = false);
-      return; // Para a execução aqui para não adicionar bolhas de erro no chat
+      _scrollParaBaixo();
+      return;
     }
+
+    final partes = _parsearResposta(textoResposta);
 
     setState(() {
       _digitando = false;
-      if (resposta.sucesso) {
-        final textoResposta = resposta.dados['respostaIa'] ?? "";
-        final partes = _parsearResposta(textoResposta);
-        _mensagens.add({
-          "remetente": "ringo",
-          "partes": partes,
-          "mostrarTraducao": false,
-          "mostrarDica": false,
-          "hora": hora,
-        });
-      } else {
-        AnalyticsService.erroChat(widget.ringo.nome);
-        _mensagens.add({
-          "remetente": "ringo",
-          "partes": {
-            "english": "Ops, algo deu errado!",
-            "portuguese": "",
-            "tipEnglish": "",
-            "tipPortuguese": "",
-          },
-          "mostrarTraducao": false,
-          "mostrarDica": false,
-          "hora": hora,
-        });
-      }
+      _mensagens.add({
+        'remetente': 'ringo',
+        'partes': partes,
+        'mostrarTraducao': false,
+        'mostrarDica': false,
+        'hora': hora,
+      });
     });
 
-    if (resposta.sucesso) _mostrarAnimacaoXp();
+    _mostrarAnimacaoXp();
     _scrollParaBaixo();
+  } catch (e) {
+    if (!mounted) return;
+
+    AnalyticsService.erroChat(widget.ringo.nome);
+
+    setState(() {
+      _digitando = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Falha ao enviar mensagem: $e'),
+        backgroundColor: Colors.redAccent,
+      ),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
