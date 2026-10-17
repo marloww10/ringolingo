@@ -273,7 +273,7 @@ class _ChatPageState extends State<ChatPage> with TickerProviderStateMixin {
       persona: widget.ringo.nome,
     );
     if (!resposta.sucesso) {
-      int status = resposta.dados['status'] ?? 500;
+      final status = resposta.dados?['status'];
       String msgErro = "Erro ao enviar mensagem.";
 
       if (status == 429) {
